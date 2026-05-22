@@ -662,3 +662,7 @@
 - API 格式：OpenAI-compatible，零代码变更切换
 
 **产出**：AI 面试复盘分析系统开发完成，等待用户配置 LLM_API_KEY 后即可使用。
+
+**后续修复**：
+- prompt 添加完整 JSON schema 定义，确保 AI 返回的字段名和结构与前端组件匹配
+- AiResultPanel 浅色模式修复：textareas（优势/不足/评语）文本颜色、改进动作文字、问题卡片背景/边框

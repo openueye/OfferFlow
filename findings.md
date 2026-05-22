@@ -819,3 +819,10 @@ DELETE FROM resumes  WHERE userId NOT IN (SELECT id FROM users WHERE username = 
 - GET /api/ai/trends 从数据库读取当前用户所有 Review 记录
 - 将数据传给 `buildTrendsPrompt()` 生成 prompt
 - 前端 TrendReportModal 展示结构化结果（高频薄弱点、评分趋势、进步项、建议、常见问题、问题分布）
+
+### Prompt JSON Schema 经验
+
+- **问题**：初始 prompt 只要求"严格按照 JSON 格式输出"，未指定具体 schema。DeepSeek 等模型无法推断前端期望的字段名和结构，返回的 JSON 字段与前端不匹配，导致页面空白无报错
+- **修复**：在 prompt 中嵌入完整的 JSON schema 模板，明确每个字段的路径、类型和取值范围。模型按模板输出后，JSON.parse 才能正确解析为前端可用的结构
+- **教训**：使用 `response_format: { type: 'json_object' }` 时，prompt 必须同时（1）包含单词"json"（DeepSeek 硬性要求）和（2）提供完整的 schema 定义。二者缺一不可
+- **DeepSeek 特殊要求**：启用 `json_object` 模式时，prompt 中必须出现 "json" 这个词（大小写均可），否则返回 400 错误
