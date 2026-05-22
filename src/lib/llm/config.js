@@ -17,8 +17,8 @@ export function getLLMConfig() {
       model: 'deepseek-chat',
     },
     xiaomi: {
-      baseUrl: 'https://api.mi.com/v1',
-      model: 'miMo',
+      baseUrl: 'https://token-plan-cn.xiaomimimo.com/v1',
+      model: 'minimax-text-01',
     },
   }
 
