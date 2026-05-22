@@ -5,7 +5,6 @@ import { saveReviewAttachment, deleteReviewAttachment } from '../utils/reviewAtt
 import ModalHeader from './ModalHeader'
 import GlowCard from './GlowCard'
 import AiResultPanel from './AiResultPanel'
-import LoadingAnimation from './LoadingAnimation'
 
 const SCORE_LABELS = {
   expression: '表达清晰度',
@@ -106,7 +105,6 @@ export default function ReviewModal({ open, review, onClose }) {
   const [aiMetadata, setAiMetadata] = useState(null)
   const [showAiPanel, setShowAiPanel] = useState(false)
   const aiMetaRef = useRef(null)
-  const abortRef = useRef(null)
 
   // ESC close
   useEffect(() => {
@@ -296,8 +294,6 @@ export default function ReviewModal({ open, review, onClose }) {
     }
 
     setAiAnalyzing(true)
-    const controller = new AbortController()
-    abortRef.current = controller
     try {
       const formData = new FormData()
       formData.append('file', docxFile)
@@ -306,7 +302,6 @@ export default function ReviewModal({ open, review, onClose }) {
       const res = await fetch('/api/ai/analyze', {
         method: 'POST',
         body: formData,
-        signal: controller.signal,
       })
 
       if (!res.ok) {
@@ -320,24 +315,11 @@ export default function ReviewModal({ open, review, onClose }) {
       setShowAiPanel(true)
       addToast('AI 分析完成，请确认结果', 'success')
     } catch (err) {
-      if (err.name === 'AbortError') {
-        addToast('AI 分析已取消', 'info')
-      } else {
-        addToast(err.message || 'AI 分析失败，请重试', 'error')
-        console.error('[ai analyze error]', err)
-      }
+      addToast(err.message || 'AI 分析失败，请重试', 'error')
+      console.error('[ai analyze error]', err)
     } finally {
       setAiAnalyzing(false)
-      abortRef.current = null
     }
-  }
-
-  const handleCancelAi = () => {
-    if (abortRef.current) {
-      abortRef.current.abort()
-      abortRef.current = null
-    }
-    setAiAnalyzing(false)
   }
 
   const handleApplyAiResult = (result) => {
@@ -681,11 +663,23 @@ export default function ReviewModal({ open, review, onClose }) {
                         className="px-3 py-1.5 rounded-lg text-xs font-medium bg-offer-primary text-white hover:bg-offer-accent transition-colors">添加到复盘</button>
                       {selectedFiles.some((f) => f.name.toLowerCase().endsWith('.docx')) && (
                         <button onClick={handleAiAnalyze} disabled={aiAnalyzing}
-                          className="px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 bg-purple-600 hover:bg-purple-500">
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                          </svg>
-                          AI 分析
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-colors disabled:cursor-not-allowed flex items-center gap-1.5 ${aiAnalyzing ? 'ai-pulse bg-purple-700' : 'bg-purple-600 hover:bg-purple-500'}`}>
+                          {aiAnalyzing ? (
+                            <>
+                              <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                              </svg>
+                              <span className="ai-dots">AI 正在分析<span>.</span><span>.</span><span>.</span></span>
+                            </>
+                          ) : (
+                            <>
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                              </svg>
+                              AI 分析
+                            </>
+                          )}
                         </button>
                       )}
                       <button onClick={() => { setSelectedFiles([]); setAttachmentDescription(''); if (fileInputRef.current) fileInputRef.current.value = '' }}
@@ -755,18 +749,6 @@ export default function ReviewModal({ open, review, onClose }) {
           </div>
         </div>
       )}
-      {/* AI Analysis overlay */}
-      <LoadingAnimation
-        visible={aiAnalyzing}
-        texts={[
-          'AI 正在分析面试资料',
-          '正在提取关键问题',
-          '正在生成改进建议',
-        ]}
-        onCancel={handleCancelAi}
-        cancelText="取消分析"
-        mode="overlay"
-      />
     </>
   )
 }
