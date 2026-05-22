@@ -77,6 +77,8 @@ export default function ReviewDetailModal({ open, review, onClose, onEdit, onDel
   const scores = liveReview.scores || {}
   const questions = Array.isArray(liveReview.questions) ? liveReview.questions : []
   const tags = Array.isArray(liveReview.tags) ? liveReview.tags : []
+  const positiveTags = Array.isArray(liveReview.positiveTags) ? liveReview.positiveTags : []
+  const negativeTags = Array.isArray(liveReview.negativeTags) ? liveReview.negativeTags : []
   const improvements = Array.isArray(liveReview.improvements) ? liveReview.improvements : []
   const attachments = normalizeAttachments(liveReview.attachments)
 
@@ -237,13 +239,25 @@ export default function ReviewDetailModal({ open, review, onClose, onEdit, onDel
             </div>
           )}
 
-          {/* Tags */}
-          {tags.length > 0 && (
+          {/* Positive Tags */}
+          {positiveTags.length > 0 && (
+            <div>
+              <SectionTitle>优势标签</SectionTitle>
+              <div className="flex gap-2 flex-wrap">
+                {positiveTags.map((tag) => (
+                  <span key={tag} className="px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">{tag}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Negative Tags / Problem Tags */}
+          {(negativeTags.length > 0 || tags.length > 0) && (
             <div>
               <SectionTitle>问题标签</SectionTitle>
               <div className="flex gap-2 flex-wrap">
-                {tags.map((tag) => (
-                  <span key={tag} className="px-2.5 py-1 rounded-lg text-xs font-medium bg-red-50 text-red-700 dark:text-red-300 border border-red-200">{tag}</span>
+                {(negativeTags.length > 0 ? negativeTags : tags).map((tag) => (
+                  <span key={tag} className="px-2.5 py-1 rounded-lg text-xs font-medium bg-red-50 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800">{tag}</span>
                 ))}
               </div>
             </div>

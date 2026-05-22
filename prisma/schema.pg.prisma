@@ -118,6 +118,8 @@ model Review {
   scores          Json?
   questions       Json?
   tags            Json?
+  positiveTags    Json?
+  negativeTags    Json?
   improvements    Json?
   attachments     Json?
   aiAnalysis      Json?    @map("ai_analysis")

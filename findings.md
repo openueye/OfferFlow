@@ -826,3 +826,58 @@ DELETE FROM resumes  WHERE userId NOT IN (SELECT id FROM users WHERE username = 
 - **修复**：在 prompt 中嵌入完整的 JSON schema 模板，明确每个字段的路径、类型和取值范围。模型按模板输出后，JSON.parse 才能正确解析为前端可用的结构
 - **教训**：使用 `response_format: { type: 'json_object' }` 时，prompt 必须同时（1）包含单词"json"（DeepSeek 硬性要求）和（2）提供完整的 schema 定义。二者缺一不可
 - **DeepSeek 特殊要求**：启用 `json_object` 模式时，prompt 中必须出现 "json" 这个词（大小写均可），否则返回 400 错误
+
+---
+
+## positiveTags/negativeTags 数据库持久化缺失 Bug（2026-05-22）
+
+### 问题描述
+
+AI 标签正负分类（⑫）实施后，`positiveTags`/`negativeTags` 拆分完成，但这两个字段**永远无法保存到数据库**。刷新页面后标签消失。
+
+### Root Cause 分析
+
+这是一个 **4 层连锁缺陷**：
+
+#### 第 1 层：Prisma schema 缺少字段
+
+Review 模型只定义了 `tags Json?`，没有 `positiveTags` 和 `negativeTags` 列。数据库没有任何地方存放这两个字段。
+
+#### 第 2 层：POST 路由解构了但不传
+
+`POST /api/reviews` 从 `body` 解构了 `positiveTags` 和 `negativeTags`，但 `prisma.review.create({ data: {...} })` **没有包含它们**。这两个值被解构出来后从未使用。
+
+#### 第 3 层：PUT 路由主动丢弃
+
+`PUT /api/reviews` 使用了 `const { id, positiveTags, negativeTags, ...data } = body`，将 `positiveTags` 和 `negativeTags` **主动解构排除**出 `data`。`prisma.review.update({ data })` 永远不会保存这些字段。
+
+#### 第 4 层：ReviewDetailModal 只读旧 tags
+
+详情页读取 `const tags = Array.isArray(liveReview.tags)`，完全不知道 `positiveTags`/`negativeTags` 的存在。即使数据库正确存储了，详情页也不会显示。
+
+### 连锁效应
+
+```
+AI 返回 positiveTags=["A"] + negativeTags=["B"] (无 tags)
+  → handleApplyAiResult 合并 tags=["A","B"] + 分别存入状态
+  → 用户保存 → PUT 丢弃 positiveTags/negativeTags
+  → 数据库只存了 tags=["A","B"]（正负混合）
+  → 刷新页面 → negativeTags=undefined
+  → TagCloud  fallback 到 tags → 显示混合标签，正面词被归为"弱项"
+```
+
+### 修复方案
+
+| 层 | 文件 | 修复 |
+|----|------|------|
+| 1 | prisma/schema.prisma (×3) | 添加 `positiveTags Json?` + `negativeTags Json?` |
+| 2 | POST /api/reviews | `create` data 中加入两个字段 |
+| 3 | PUT /api/reviews | `const { id, ...data }` 保留所有字段 |
+| 4 | ReviewDetailModal | 优势标签（绿色）+ 问题标签（红色，优先 negativeTags）双区 |
+
+### 经验教训
+
+1. **新增字段的三步确认法**：当添加新数据字段时，必须确认（a）Prisma schema、（b）POST create、（c）PUT update 三处都同步更新。遗漏任何一环都会导致数据静默丢失。
+2. **不要用解构排除来"保护"数据**：`const { id, positiveTags, negativeTags, ...data }` 的意图可能是排除 id，但顺手排除了其他字段。更安全的方式是只排除需要的 key：`const { id, ...data }`。
+3. **Schema 与代码的对应关系**：新字段必须先出现在 Prisma schema 中，然后才能在 API 层使用。非 schema 字段在 `create`/`update` 时会被 Prisma 忽略（不报错，静默丢弃），这增加了调试难度。
+4. **前后端字段一致性**：前端 state 中存在的字段（positiveTags/negativeTags）需要后端 schema 和 API Route 两端支持才能完成持久化闭环。缺一不可。

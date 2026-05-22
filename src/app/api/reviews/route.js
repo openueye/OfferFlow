@@ -39,6 +39,8 @@ export async function POST(request) {
       scores: scores || null,
       questions: questions || [],
       tags: tags || [],
+      positiveTags: positiveTags || [],
+      negativeTags: negativeTags || [],
       improvements: improvements || [],
       attachments: attachments || [],
     },
@@ -52,7 +54,7 @@ export async function PUT(request) {
   if (!user) return NextResponse.json({ error: '未登录' }, { status: 401 })
 
   const body = await request.json()
-  const { id, positiveTags, negativeTags, ...data } = body
+  const { id, ...data } = body
 
   if (!id) return NextResponse.json({ error: '缺少 id' }, { status: 400 })
 

@@ -550,6 +550,28 @@
 
 ### 已修复 Bug
 - [x] 数据洞察总面试次数未计入「已结束」流程 — `hasInterviewExperience()` 和 `getFallbackInterviewRounds()` 增加 `已结束` 状态处理
+- [x] positiveTags/negativeTags 数据库持久化 — Prisma schema 缺少字段 + API 路由未保存 + ReviewDetailModal 未显示
+
+---
+
+| **22** | **positiveTags/negativeTags 数据库持久化修复** | ✅ **已完成** | 2026-05-22 |
+
+### 阶段 22：positiveTags/negativeTags 数据库持久化修复 ✅
+
+**目标**：修复 AI 标签正负分类改革后，positiveTags/negativeTags 无法持久化到数据库的问题。
+
+- [x] Prisma schema（3 文件）Review 模型添加 `positiveTags Json?` + `negativeTags Json?`
+- [x] POST /api/reviews — create data 中加入 positiveTags/negativeTags
+- [x] PUT /api/reviews — 不再解构丢弃 positiveTags/negativeTags
+- [x] ReviewDetailModal — 优势标签（绿色）+ 问题标签（红色，优先 negativeTags）双区域显示
+- [x] `prisma db push` 成功（SQLite + Neon PostgreSQL）
+
+**修改的文件**：
+- `prisma/schema.prisma` — 添加 positiveTags/negativeTags 字段
+- `prisma/schema.pg.prisma` — 同上
+- `prisma/schema.sqlite.prisma` — 同上
+- `src/app/api/reviews/route.js` — POST/PUT 路由修复
+- `src/components/ReviewDetailModal.jsx` — 正负标签双区显示
 
 ---
 

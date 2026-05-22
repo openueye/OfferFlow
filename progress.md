@@ -722,3 +722,34 @@
 **后续修复**：
 - prompt 添加完整 JSON schema 定义，确保 AI 返回的字段名和结构与前端组件匹配
 - AiResultPanel 浅色模式修复：textareas（优势/不足/评语）文本颜色、改进动作文字、问题卡片背景/边框
+
+---
+
+## 会话 27：positiveTags/negativeTags 数据库持久化修复
+
+**时间**：2026-05-22
+
+**内容**：
+- **问题报告**：用户反馈问题标签"全部消失了"，数据洞察薄弱项统计也不见了。AI 标签正负分类完成后 positiveTags/negativeTags 无法持久化
+- **Root Cause 分析**：4 层连锁缺陷
+  1. Prisma schema 缺少 positiveTags/negativeTags 字段（只有旧 `tags`）
+  2. POST API 路由解构了但不传入 create data
+  3. PUT API 路由用解构排除主动丢弃这两个字段
+  4. ReviewDetailModal 只读取 `tags`，不显示正负标签
+- **修复**：
+  - 3 个 Prisma schema 文件添加 `positiveTags Json?` + `negativeTags Json?`
+  - POST create data 中加入两个字段
+  - PUT 改为 `const { id, ...data }` 保留所有字段
+  - ReviewDetailModal 新增"优势标签"（绿色徽章）+ "问题标签"（红色徽章，优先 `negativeTags`，兼容旧数据 fallback `tags`）双区显示
+- **数据库迁移**：`prisma db push` 成功（SQLite + Neon PostgreSQL）
+- **文档更新**：task_plan.md 添加阶段 22、findings.md 添加完整根因分析、产品文档更新至 v2.8
+
+**修改的文件**：
+- `prisma/schema.prisma` — 添加字段
+- `prisma/schema.pg.prisma` — 同上
+- `prisma/schema.sqlite.prisma` — 同上
+- `src/app/api/reviews/route.js` — POST/PUT 路由修复
+- `src/components/ReviewDetailModal.jsx` — 正负标签双区显示
+- `task_plan.md` — 添加阶段 22
+- `findings.md` — 添加 Bug 分析
+- `OfferFlow-产品需求与技术文档.md` — 更新至 v2.8 + 添加修复记录
