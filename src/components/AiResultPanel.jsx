@@ -111,14 +111,14 @@ export default function AiResultPanel({ analysis, metadata, onApply, onCancel })
           <div>
             <h3 className="text-xs font-semibold text-offer-muted uppercase tracking-wider mb-2">优势</h3>
             <textarea value={strengths} onChange={(e) => setStrengths(e.target.value)} rows={2}
-              className="min-h-[40px] w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-white placeholder:text-gray-500 outline-none transition-all duration-200 focus:border-purple-400/70 focus:ring-2 focus:ring-purple-500/20 resize-none" />
+              className="min-h-[40px] w-full rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.03] px-4 py-2.5 text-sm text-slate-950 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 outline-none transition-all duration-200 focus:border-purple-400/70 focus:ring-2 focus:ring-purple-500/20 resize-none" />
           </div>
 
           {/* Weaknesses */}
           <div>
             <h3 className="text-xs font-semibold text-offer-muted uppercase tracking-wider mb-2">不足</h3>
             <textarea value={weaknesses} onChange={(e) => setWeaknesses(e.target.value)} rows={2}
-              className="min-h-[40px] w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-white placeholder:text-gray-500 outline-none transition-all duration-200 focus:border-purple-400/70 focus:ring-2 focus:ring-purple-500/20 resize-none" />
+              className="min-h-[40px] w-full rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.03] px-4 py-2.5 text-sm text-slate-950 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 outline-none transition-all duration-200 focus:border-purple-400/70 focus:ring-2 focus:ring-purple-500/20 resize-none" />
           </div>
 
           {/* Questions */}
@@ -130,7 +130,7 @@ export default function AiResultPanel({ analysis, metadata, onApply, onCancel })
             {questions.length > 0 ? (
               <div className="space-y-2">
                 {questions.map((q, idx) => (
-                  <div key={q.id || idx} className="card-glow rounded-xl p-3 border border-white/10 bg-white/[0.02]">
+                  <div key={q.id || idx} className="card-glow rounded-xl p-3 border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/[0.02]">
                     <p className="text-xs text-offer-muted mb-1">Q{idx + 1}: {q.question}</p>
                     {q.betterAnswer && (
                       <p className="text-xs text-emerald-400">改进: {q.betterAnswer}</p>
@@ -151,7 +151,7 @@ export default function AiResultPanel({ analysis, metadata, onApply, onCancel })
                 {improvements.map((imp, idx) => (
                   <div key={imp.id || idx} className="flex items-center gap-2 text-sm">
                     <div className="w-1.5 h-1.5 rounded-full bg-offer-accent shrink-0" />
-                    <span className="text-white">{imp.action}</span>
+                    <span className="text-slate-950 dark:text-white">{imp.action}</span>
                   </div>
                 ))}
               </div>
@@ -179,7 +179,7 @@ export default function AiResultPanel({ analysis, metadata, onApply, onCancel })
           <div>
             <h3 className="text-xs font-semibold text-offer-muted uppercase tracking-wider mb-2">整体评语</h3>
             <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3}
-              className="min-h-[40px] w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-white placeholder:text-gray-500 outline-none transition-all duration-200 focus:border-purple-400/70 focus:ring-2 focus:ring-purple-500/20 resize-none" />
+              className="min-h-[40px] w-full rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.03] px-4 py-2.5 text-sm text-slate-950 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 outline-none transition-all duration-200 focus:border-purple-400/70 focus:ring-2 focus:ring-purple-500/20 resize-none" />
           </div>
         </div>
 
