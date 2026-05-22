@@ -4,6 +4,7 @@ import { useApp } from '../store/AppContext'
 import ReviewModal from '../components/ReviewModal'
 import ReviewDetailModal from '../components/ReviewDetailModal'
 import ConfirmDialog from '../components/ConfirmDialog'
+import TrendReportModal from '../components/TrendReportModal'
 
 const RESULT_STYLE = {
   '通过': 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
@@ -22,6 +23,7 @@ export default function Interview() {
   const [detailReview, setDetailReview] = useState(null)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [deletingReview, setDeletingReview] = useState(null)
+  const [trendOpen, setTrendOpen] = useState(false)
 
   // Collect all unique tags from reviews
   const allTags = useMemo(() => {
@@ -114,6 +116,14 @@ export default function Interview() {
                 }`}>{tag}</button>
             ))}
           </div>
+
+          <button onClick={() => setTrendOpen(true)}
+            className="btn-secondary h-9 px-4 rounded-lg text-sm font-medium flex items-center gap-1.5 border border-purple-400/30 text-purple-300 hover:text-white hover:border-purple-400/60 transition-all">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            生成趋势报告
+          </button>
 
           <button onClick={handleNew}
             className="btn-gradient h-9 px-4 rounded-lg text-white text-sm font-medium flex items-center gap-1.5 ml-auto">
@@ -208,6 +218,7 @@ export default function Interview() {
         onEdit={handleDetailEdit} onDelete={(r) => { setDetailReview(null); setDeletingReview(r); setConfirmOpen(true) }} />
       <ConfirmDialog open={confirmOpen} title="确认删除" message="确定要删除这个复盘记录吗？此操作不可恢复。"
         onConfirm={handleDelete} onCancel={() => { setConfirmOpen(false); setDeletingReview(null) }} />
+      <TrendReportModal open={trendOpen} onClose={() => setTrendOpen(false)} />
     </div>
   )
 }

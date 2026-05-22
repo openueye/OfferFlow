@@ -495,9 +495,48 @@
 
 ---
 
+| **21** | **AI 面试复盘分析系统** | ✅ **已完成** | 2026-05-22 |
+
+### 阶段 21：AI 面试复盘分析系统 ✅
+
+**目标**：接入 LLM（DeepSeek/Xiaomi MiMo）对面试复盘 Word 文档进行智能分析，自动生成评分、优势/不足、问题列表和改进建议；支持岗位角色适配；跨面试趋势总结。
+
+- [x] 安装依赖（mammoth, @vercel/blob）
+- [x] LLM 客户端抽象层（config/client/prompts）
+- [x] .docx 解析模块 + 文件存储模块
+- [x] Prisma Review 模型新增 aiAnalysis 字段
+- [x] POST /api/ai/analyze — Word 分析 API
+- [x] GET /api/ai/trends — 趋势总结 API
+- [x] POST /api/ai/review/:id/reanalyze — 重新分析 API
+- [x] AiResultPanel 前端组件
+- [x] ReviewModal AI 分析集成
+- [x] TrendReportModal 前端组件
+- [x] Interview.jsx 趋势分析入口
+- [x] 构建验证 + 环境变量配置
+
+**创建的文件**：
+- `src/lib/llm/config.js` — LLM 环境变量配置读取
+- `src/lib/llm/client.js` — OpenAI-compatible API 调用封装（含重试、超时）
+- `src/lib/llm/prompts.js` — 分析/趋势 prompt 模板
+- `src/lib/ai/docParser.js` — mammoth .docx → 纯文本解析
+- `src/lib/ai/fileStore.js` — 文件存储抽象（本地磁盘 / Vercel Blob）
+- `src/app/api/ai/analyze/route.js` — POST Word 文件分析 API
+- `src/app/api/ai/trends/route.js` — GET 历史趋势总结 API
+- `src/app/api/ai/review/[id]/reanalyze/route.js` — POST 重新分析 API
+- `src/components/AiResultPanel.jsx` — AI 分析结果预览/编辑面板
+- `src/components/TrendReportModal.jsx` — 趋势报告展示弹窗
+
+**修改的文件**：
+- `prisma/schema.prisma` — Review 添加 aiAnalysis 字段
+- `prisma/schema.pg.prisma` — 同上
+- `prisma/schema.sqlite.prisma` — 同上
+- `src/components/ReviewModal.jsx` — 添加 AI 分析按钮 + AiResultPanel 集成
+- `src/views/Interview.jsx` — 添加"生成趋势报告"按钮 + TrendReportModal
+- `.env` — 添加 LLM 环境变量
+
+**涉及的依赖**：mammoth @vercel/blob
+
 ### 待规划
-- [x] ~~PostgreSQL 生产环境配置~~ ✅ 已完成（Neon）
-- [x] ~~Seed 数据仅初始化为 user 账户~~ ✅ 已修复
 - [ ] 多设备数据同步
 - [ ] 数据导出（JSON / CSV / PDF）
 - [ ] 求职漏斗图优化

@@ -559,7 +559,30 @@ Prisma schema 支持在 SQLite 和 PostgreSQL 之间切换，只需修改 `provi
 
 ---
 
-## Console SyntaxError: JSON 解析错误根因（2026-05-19）
+## AI 面试复盘分析系统设计（2026-05-22）
+
+### LLM 选择与抽象
+
+- **DeepSeek / Xiaomi MiMo**：都兼容 OpenAI API 格式，可以统一通过 `fetch` + 环境变量切换
+- 无需 SDK，直接调用 `/chat/completions` 端点
+- `response_format: { type: 'json_object' }` 确保 LLM 返回结构化 JSON
+- 环境变量驱动切换：改 `.env` 即可换模型，零代码变更
+
+### .docx 解析方案
+
+- **mammoth** 纯 JS 库，无需编译，`extractRawText` 直接转纯文本
+- 与项目 "纯 JS 无原生编译依赖" 的技术哲学一致（如 `bcryptjs` 替代 `bcrypt`）
+
+### 产品文档更新
+
+**时间**：2026-05-22
+**位置**：OfferFlow-产品需求与技术文档.md
+
+- 6.8 面试复盘 — 补充 AI 分析功能描述
+- 8.4 Review 数据模型 — 新增 `aiAnalysis` 字段
+- 12. 现状与规划 — 已添加"AI 面试复盘分析"到待完成列表
+- 目录结构 — 新增 `src/lib/llm/`、`src/lib/ai/`、`src/app/api/ai/` 路径
+- 技术栈表 — 新增 `mammoth` / `@vercel/blob` 依赖项
 
 ### 问题描述
 
@@ -744,3 +767,55 @@ DELETE FROM resumes  WHERE userId NOT IN (SELECT id FROM users WHERE username = 
 
 注意：这会删除所有非 `user` 账户自行创建的数据。如果已有用户创建了真实数据，需要先备份。
 
+
+---
+
+## AI 面试分析系统（2026-05-22）
+
+### 技术选型
+
+**LLM Provider 抽象层**：
+- OpenAI-compatible API 封装，环境变量驱动配置切换
+- 默认 DeepSeek（`api.deepseek.com`），可切换 Xiaomi MiMo 等其他提供方
+- 零代码变更：仅需修改 `.env` 中的 `LLM_BASE_URL` 和 `LLM_MODEL`
+
+**文档解析**：
+- `mammoth@1.x`（最新版本为 1.12.0，非 v2），纯 JS 无需编译
+- `mammoth.extractRawText()` 仅提取纯文本，不保留格式/图片
+- 限制 10MB 文件大小，避免超大文档导致 LLM Token 溢出
+
+**文件存储**：
+- 本地开发：`public/uploads/reviews/{reviewId}/` 目录
+- 生产环境：通过 `@vercel/blob@2.x`（最新版本 v2.4.0，非 v8）
+- 统一接口 `saveFile()` / `deleteFile()`，通过环境变量切换
+
+**Prisma aiAnalysis 字段**：
+- 类型 `Json?`，存储 AI 分析元数据（provider、model、timestamp 等）
+- 前端 `aiMetaRef` useRef 穿透保存，不与表单 state 混合
+- `userModified: true` 标记用户已确认/修改过 AI 结果
+
+**Prompt 设计**：
+- 中文 prompt，要求 JSON 格式输出（`response_format: { type: 'json_object' }`）
+- 分析 prompt 包含 8 维评分、优势/不足、面试问题、改进建议
+- 趋势 prompt 分析高频薄弱点、评分趋势、问题类型分布
+- 极简 system prompt（`你是一位资深的<岗位>面试专家`），岗位由前端传入
+
+### 包版本注意事项
+
+- `@vercel/blob`：npm 最新版为 `2.4.0`（文档可能引用旧版 `^8`），需用 `npm view @vercel/blob versions --json` 确认
+- `mammoth`：npm 最新版为 `1.12.0`（文档可能引用 `^2`），同上确认
+- Prisma：当前使用 v6.19.3，schema 文件 3 份（sqlite/pg 双数据库）
+
+### 前端 AI 集成模式
+
+- **"Preview → modify → confirm"** 模式：AI 结果不自动保存到数据库
+- AiResultPanel 独立组件，内部管理编辑状态（scores/strengths/weaknesses 等）
+- ReviewModal 通过 `handleApplyAiResult` 将编辑后的结果填充到表单
+- `aiMetaRef` useRef 持久化 AI 元数据，不影响表单渲染
+- 保存时 `aiAnalysis` 字段包含 `metadata + userModified: true`
+
+### 趋势报告数据流
+
+- GET /api/ai/trends 从数据库读取当前用户所有 Review 记录
+- 将数据传给 `buildTrendsPrompt()` 生成 prompt
+- 前端 TrendReportModal 展示结构化结果（高频薄弱点、评分趋势、进步项、建议、常见问题、问题分布）

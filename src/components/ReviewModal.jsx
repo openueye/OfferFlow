@@ -4,6 +4,7 @@ import { useApp } from '../store/AppContext'
 import { saveReviewAttachment, deleteReviewAttachment } from '../utils/reviewAttachmentStore'
 import ModalHeader from './ModalHeader'
 import GlowCard from './GlowCard'
+import AiResultPanel from './AiResultPanel'
 
 const SCORE_LABELS = {
   expression: '表达清晰度',
@@ -96,6 +97,13 @@ export default function ReviewModal({ open, review, onClose }) {
   const [selectedCategory, setSelectedCategory] = useState('面试题')
   const [attachmentDescription, setAttachmentDescription] = useState('')
 
+  // AI Analysis state
+  const [aiAnalyzing, setAiAnalyzing] = useState(false)
+  const [aiResult, setAiResult] = useState(null)
+  const [aiMetadata, setAiMetadata] = useState(null)
+  const [showAiPanel, setShowAiPanel] = useState(false)
+  const aiMetaRef = useRef(null)
+
   // ESC close
   useEffect(() => {
     if (!open) return
@@ -146,6 +154,10 @@ export default function ReviewModal({ open, review, onClose }) {
       setTags([])
       setImprovements([])
       setAttachments([])
+      setAiAnalyzing(false)
+      setAiResult(null)
+      setAiMetadata(null)
+      setShowAiPanel(false)
     }
     setSelectedFiles([])
     setSelectedCategory('面试题')
@@ -258,6 +270,88 @@ export default function ReviewModal({ open, review, onClose }) {
     setAttachments((prev) => prev.filter((a) => a.id !== attId))
   }
 
+  // ---- AI Analysis ----
+  const handleAiAnalyze = async () => {
+    if (selectedFiles.length === 0) {
+      addToast('请先选择一个 .docx 文件', 'error')
+      return
+    }
+    const docxFile = selectedFiles.find((f) => f.name.toLowerCase().endsWith('.docx'))
+    if (!docxFile) {
+      addToast('AI 分析仅支持 .docx 格式', 'error')
+      return
+    }
+    if (!companyName || !jobTitle) {
+      addToast('请先选择关联岗位', 'error')
+      return
+    }
+
+    setAiAnalyzing(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', docxFile)
+      formData.append('jobTitle', jobTitle)
+
+      const res = await fetch('/api/ai/analyze', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || '分析失败')
+      }
+
+      const data = await res.json()
+      setAiResult(data.analysis)
+      setAiMetadata(data.metadata)
+      setShowAiPanel(true)
+      addToast('AI 分析完成，请确认结果', 'success')
+    } catch (err) {
+      addToast(err.message || 'AI 分析失败，请重试', 'error')
+      console.error('[ai analyze error]', err)
+    } finally {
+      setAiAnalyzing(false)
+    }
+  }
+
+  const handleApplyAiResult = (result) => {
+    // Fill form with AI analysis result
+    if (result.scores) setScores(result.scores)
+    if (result.rating) setRating(result.rating)
+    if (result.strengths) setStrengths(result.strengths)
+    if (result.weaknesses) setWeaknesses(result.weaknesses)
+    if (result.note) setNote(result.note)
+    if (Array.isArray(result.questions)) setQuestions(result.questions)
+    if (Array.isArray(result.improvements)) setImprovements(result.improvements)
+    if (Array.isArray(result.tags)) setTags(result.tags)
+
+    // Persist AI metadata for handleSave
+    aiMetaRef.current = aiMetadata
+
+    // Add the Word file as an attachment with isSourceForAi flag
+    const sourceAtt = {
+      id: crypto.randomUUID(),
+      fileName: selectedFiles[0].name,
+      fileType: 'DOCX',
+      fileSize: formatFileSize(selectedFiles[0].size),
+      sizeBytes: selectedFiles[0].size,
+      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      hasFile: true,
+      fileCategory: '复盘文档',
+      description: 'AI 分析源文件',
+      uploadDate: new Date().toISOString().slice(0, 10),
+      isSourceForAi: true,
+    }
+    setAttachments((prev) => [...prev, sourceAtt])
+
+    setShowAiPanel(false)
+    setAiResult(null)
+    setSelectedFiles([])
+    if (fileInputRef.current) fileInputRef.current.value = ''
+    addToast('AI 结果已应用到表单', 'success')
+  }
+
   const handleSave = () => {
     if (!companyName) { addToast('请选择关联岗位', 'error'); return }
 
@@ -277,6 +371,10 @@ export default function ReviewModal({ open, review, onClose }) {
       scores, questions, tags,
       improvements: improvements.filter((i) => i.action.trim()),
       attachments,
+      aiAnalysis: aiMetaRef.current ? {
+        metadata: aiMetaRef.current,
+        userModified: true,
+      } : null,
       updatedAt: new Date().toISOString(),
     }
     console.log('[review attachments meta]', attachments.length, 'items')
@@ -307,6 +405,7 @@ export default function ReviewModal({ open, review, onClose }) {
   const activeJobs = jobs.filter((j) => j.status !== '已结束')
 
   return (
+    <>
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm modal-overlay" onClick={onClose}>
       <div className="modal-panel border w-full max-w-2xl mx-4 max-h-[90vh] min-h-0 flex flex-col shadow-2xl shadow-black/40" onClick={(e) => e.stopPropagation()}>
         <GlowCard style={{ background: 'transparent', border: 'none', boxShadow: 'none', padding: 0 }} className="rounded-[22px] w-full max-w-full min-w-0 flex flex-col flex-1">
@@ -545,6 +644,27 @@ export default function ReviewModal({ open, review, onClose }) {
                     <div className="flex gap-2">
                       <button onClick={addAttachment}
                         className="px-3 py-1.5 rounded-lg text-xs font-medium bg-offer-primary text-white hover:bg-offer-accent transition-colors">添加到复盘</button>
+                      {selectedFiles.some((f) => f.name.toLowerCase().endsWith('.docx')) && (
+                        <button onClick={handleAiAnalyze} disabled={aiAnalyzing}
+                          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-600 text-white hover:bg-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5">
+                          {aiAnalyzing ? (
+                            <>
+                              <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                              </svg>
+                              AI 正在分析...
+                            </>
+                          ) : (
+                            <>
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                              </svg>
+                              AI 分析
+                            </>
+                          )}
+                        </button>
+                      )}
                       <button onClick={() => { setSelectedFiles([]); setAttachmentDescription(''); if (fileInputRef.current) fileInputRef.current.value = '' }}
                         className="btn-secondary px-3 py-1.5 rounded-lg text-xs font-medium text-offer-muted border border-white/10 hover:text-white transition-colors">取消</button>
                     </div>
@@ -598,6 +718,21 @@ export default function ReviewModal({ open, review, onClose }) {
       </GlowCard>
       </div>
     </div>
+
+      {/* AI Result Panel Overlay */}
+      {showAiPanel && aiResult && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowAiPanel(false)}>
+          <div className="w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <AiResultPanel
+              analysis={aiResult}
+              metadata={aiMetadata}
+              onApply={handleApplyAiResult}
+              onCancel={() => setShowAiPanel(false)}
+            />
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 

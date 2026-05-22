@@ -16,15 +16,17 @@
     "db:pg": "cp prisma/schema.pg.prisma prisma/schema.prisma && cp .env.pg .env && prisma generate && echo '✅ Switched to PostgreSQL (Vercel deploy)'"
   },
   "dependencies": {
+    "@prisma/client": "^6.5.0",
     "@tailwindcss/postcss": "^4.3.0",
+    "@vercel/blob": "^2.4.0",
     "bcryptjs": "^3.0.3",
     "jose": "^6.2.3",
+    "mammoth": "^1.12.0",
     "next": "^16.2.6",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "recharts": "^3.8.1",
-    "tailwindcss": "^4.3.0",
-    "@prisma/client": "^6.5.0"
+    "tailwindcss": "^4.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

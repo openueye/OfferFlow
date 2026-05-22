@@ -118,6 +118,7 @@ model Review {
   tags            Json?
   improvements    Json?
   attachments     Json?
+  aiAnalysis      Json?    @map("ai_analysis")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

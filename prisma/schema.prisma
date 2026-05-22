@@ -3,10 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider     = "postgresql"
-  url          = env("DATABASE_URL")
-  directUrl    = env("DIRECT_URL")
-  relationMode = "prisma"
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -120,6 +118,7 @@ model Review {
   tags            Json?
   improvements    Json?
   attachments     Json?
+  aiAnalysis      Json?    @map("ai_analysis")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

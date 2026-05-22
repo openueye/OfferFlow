@@ -594,6 +594,25 @@
 
 ---
 
+## 会话 26（当前）：AI 面试复盘分析系统 — 设计定稿 + 实施中
+
+**时间**：2026-05-22
+
+**内容**：
+- 完成 AI 面试复盘分析系统设计文档（docs/superpowers/specs/2026-05-22-ai-interview-analysis-design.md）
+- 架构设计：LLM 客户端抽象层（OpenAI-compatible）→ mammoth .docx 解析 → 3 个新 API 路由 → 2 个前端新组件
+- 支持模型切换（DeepSeek / Xiaomi MiMo 通过环境变量切换）
+- 三种分析模式：Word 文件分析、岗位角色适配、历史趋势总结
+- "预览 → 修改 → 确认保存"的用户交互流程
+- 实施计划已产出（15 个 Task），使用 Subagent-Driven Development 执行
+- 更新产品文档（目录结构、6.8 面试复盘、8.4 数据模型、12 现状规划、15 改动日志）
+
+**产出**：
+- `docs/superpowers/specs/2026-05-22-ai-interview-analysis-design.md`
+- `docs/superpowers/plans/2026-05-22-ai-interview-analysis-plan.md`
+- `task_plan.md` 阶段 21 添加
+- 产品文档更新至 v2.6
+
 ## 会话 25：退出登录 SplashScreen 重置
 
 **时间**：2026-05-20
@@ -617,3 +636,29 @@
 - `npm run build` ✅ — 22 路由全部通过
 
 
+
+## 会话 26：AI 面试复盘分析系统
+
+**时间**：2026-05-22
+
+**内容**：
+- 依赖安装（mammoth v1.x, @vercel/blob v2.x）
+- LLM 抽象层：config.js / client.js（重试、超时）/ prompts.js（中文 prompt + JSON schema）
+- .docx 解析模块（mammoth.extractRawText）+ 文件存储模块（本地磁盘）
+- Prisma 3 个 schema 添加 aiAnalysis Json? 字段
+- POST /api/ai/analyze — Word 上传 + 解析 + LLM 分析
+- GET /api/ai/trends — 历史面试趋势总结
+- POST /api/ai/review/:id/reanalyze — 重新分析
+- AiResultPanel 组件（"预览→修改→确认" 模式）
+- ReviewModal AI 集成（上传 .docx → AI 分析 → 修改 → 应用）
+- TrendReportModal 组件（高频薄弱点、评分趋势、建议等）
+- Interview.jsx 趋势报告入口（紫色按钮 + 弹窗）
+- 构建验证全部通过（3 AI 路由出现在构建输出中）
+- .env 添加 LLM 配置环境变量
+
+**LLM 配置**：
+- 提供方：DeepSeek（默认）/ Xiaomi MiMo（可通过环境变量切换）
+- env 变量：LLM_PROVIDER, LLM_API_KEY, LLM_BASE_URL, LLM_MODEL
+- API 格式：OpenAI-compatible，零代码变更切换
+
+**产出**：AI 面试复盘分析系统开发完成，等待用户配置 LLM_API_KEY 后即可使用。
