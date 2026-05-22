@@ -510,7 +510,9 @@
 - [x] POST /api/ai/review/:id/reanalyze — 重新分析 API
 - [x] AiResultPanel 前端组件
 - [x] ReviewModal AI 分析集成
+- [x] AI 分析加载动画（呼吸脉冲 + 动画省略号）
 - [x] TrendReportModal 前端组件
+- [x] 标签正负分类改革（positiveTags/negativeTags 拆分）
 - [x] Interview.jsx 趋势分析入口
 - [x] 构建验证 + 环境变量配置
 
@@ -545,6 +547,9 @@
 - [ ] 求职报告生成（PDF）
 - [ ] 多语言支持（中/英切换）
 - [ ] 移动端适配增强
+
+### 已修复 Bug
+- [x] 数据洞察总面试次数未计入「已结束」流程 — `hasInterviewExperience()` 和 `getFallbackInterviewRounds()` 增加 `已结束` 状态处理
 
 ---
 

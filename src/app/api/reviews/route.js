@@ -18,7 +18,7 @@ export async function POST(request) {
   if (!user) return NextResponse.json({ error: '未登录' }, { status: 401 })
 
   const body = await request.json()
-  const { companyName, jobTitle, jobId, round, interviewType, interviewDate, duration, interviewerInfo, result, rating, note, strengths, weaknesses, scores, questions, tags, improvements, attachments } = body
+  const { companyName, jobTitle, jobId, round, interviewType, interviewDate, duration, interviewerInfo, result, rating, note, strengths, weaknesses, scores, questions, tags, improvements, attachments, positiveTags, negativeTags } = body
 
   const review = await prisma.review.create({
     data: {
@@ -52,7 +52,7 @@ export async function PUT(request) {
   if (!user) return NextResponse.json({ error: '未登录' }, { status: 401 })
 
   const body = await request.json()
-  const { id, ...data } = body
+  const { id, positiveTags, negativeTags, ...data } = body
 
   if (!id) return NextResponse.json({ error: '缺少 id' }, { status: 400 })
 

@@ -236,7 +236,7 @@ const TAG_COLORS = [
 function TagCloud({ reviews, tagFilter, setTagFilter }) {
   const tagFreq = useMemo(() => {
     const freq = {}
-    reviews.forEach((r) => (r.tags || []).forEach((t) => { freq[t] = (freq[t] || 0) + 1 }))
+    reviews.forEach((r) => (r.negativeTags || r.tags || []).forEach((t) => { freq[t] = (freq[t] || 0) + 1 }))
     return Object.entries(freq).sort((a, b) => b[1] - a[1])
   }, [reviews])
 
@@ -249,7 +249,7 @@ function TagCloud({ reviews, tagFilter, setTagFilter }) {
       <div className="flex items-center gap-2 mb-3">
         <h3 className="text-xs font-semibold text-offer-muted uppercase tracking-wider">弱项标签分析</h3>
         <span className="text-[10px] text-offer-muted/50 bg-white/[0.03] px-2 py-0.5 rounded-full">
-          {tagFreq.length} 个标签 · {reviews.filter((r) => (r.tags || []).length > 0).length} 场面试
+          {tagFreq.length} 个弱项标签 · {reviews.filter((r) => (r.negativeTags || r.tags || []).length > 0).length} 场面试
         </span>
       </div>
       <div className="flex flex-wrap gap-2">

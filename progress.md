@@ -4,6 +4,62 @@
 
 ---
 
+## 会话 13：AI 分析加载动画
+
+**时间**：2026-05-22
+
+**内容**：
+- 添加 AI 分析呼吸脉冲动画（`@keyframes ai-breathing` + `.ai-pulse` 类）
+- 添加加载文字动画圆点（`@keyframes ai-dots` + `.ai-dots` 类）
+- 更新 `ReviewModal.jsx` — AI 分析按钮加载态应用 `ai-pulse` 呼吸发光和动画省略号
+- 更新 `TrendReportModal.jsx` — 趋势分析加载态添加呼吸发光和动画省略号
+
+**文件修改**：
+- `src/app/globals.css` — 新增 AI 动画 keyframes 和 utility 类
+- `src/components/ReviewModal.jsx` — 按钮加载态样式更新
+- `src/components/TrendReportModal.jsx` — 加载态样式更新
+
+---
+
+## 会话 14.5：AI 标签正负分类改革
+
+**时间**：2026-05-22
+
+**内容**：
+- 修复 AI 标签分类问题：LLM prompt 中 `tags` 字段描述为"问题标签"，导致 LLM 混合输出正面和负面标签，正面词被错误归入"弱项标签"
+- `prompts.js` — schema 拆分 `tags` → `positiveTags` + `negativeTags`，system prompt 增加正负分类规则和参考词表
+- `ReviewModal.jsx` — 新增 `positiveTags`/`negativeTags` 状态，AI 结果分别读取，TAG_OPTIONS 联动 `negativeTags`，保存写入两个字段
+- `Interview.jsx` — TagCloud 聚合 `negativeTags`（兼容旧数据 fallback `tags`）
+- `Insights.jsx` — 薄弱项统计聚合 `negativeTags`（兼容旧数据 fallback `tags`）
+- `trends prompt` — 指导 LLM 关注 `negativeTags` 分析"高频薄弱点"
+
+**文件修改**：
+- `src/lib/llm/prompts.js` — 正负标签 schema + 分类规则 + 参考词表
+- `src/components/ReviewModal.jsx` — 正负标签状态 + 联动 + 持久化
+- `src/views/Interview.jsx` — TagCloud 使用 `negativeTags`
+- `src/views/Insights.jsx` — 薄弱项统计使用 `negativeTags`
+- `src/app/api/reviews/route.js` — POST/PUT 兼容新字段
+- `src/store/AppContext.jsx` — addReview 保留 `positiveTags`/`negativeTags`
+- `OfferFlow-产品需求与技术文档.md` — 更新数据模型 + 变更日志
+
+---
+
+## 会话 15：Bugfix — 数据洞察面试次数未计入已结束流程
+
+**时间**：2026-05-22
+
+**内容**：
+- 修复数据洞察页面中「已结束」状态的岗位不计入总面试次数的问题
+- `hasInterviewExperience()` — 增加 `job.status === '已结束'` 判断
+- `getFallbackInterviewRounds()` — 增加 `已结束` 状态回退逻辑（默认 1 轮面试）
+
+**文件修改**：
+- `src/store/AppContext.jsx` — 统计助手函数修复
+- `task_plan.md` — 添加 Bug 记录
+- `OfferFlow-产品需求与技术文档.md` — 更新数据洞察设计逻辑说明
+
+---
+
 ## 会话 1：项目初始化
 
 **时间**：2026-05-10

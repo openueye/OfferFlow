@@ -63,12 +63,12 @@ export default function TrendReportModal({ open, onClose }) {
             {/* Body */}
             <div className="flex-1 overflow-y-auto p-5">
               {loading && (
-                <div className="flex flex-col items-center justify-center py-12 gap-3">
+                <div className="flex flex-col items-center justify-center py-12 gap-3 ai-pulse">
                   <svg className="animate-spin h-8 w-8 text-offer-accent" viewBox="0 0 24 24" fill="none">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  <p className="text-sm text-offer-muted">AI 正在分析面试趋势...</p>
+                  <p className="text-sm text-offer-muted ai-dots">AI 正在分析面试趋势<span>.</span><span>.</span><span>.</span></p>
                 </div>
               )}
 

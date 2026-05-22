@@ -86,6 +86,8 @@ export default function ReviewModal({ open, review, onClose }) {
 
   // Tags
   const [tags, setTags] = useState([])
+  const [positiveTags, setPositiveTags] = useState([])
+  const [negativeTags, setNegativeTags] = useState([])
 
   // Improvements
   const [improvements, setImprovements] = useState([])
@@ -132,6 +134,8 @@ export default function ReviewModal({ open, review, onClose }) {
       setScores(review.scores || { expression: 3, jobUnderstanding: 3, projectFamiliarity: 3, businessThinking: 3, technicalAbility: 3, composure: 3, questionQuality: 3, overall: 3 })
       setQuestions(review.questions || [])
       setTags(review.tags || [])
+      setPositiveTags(review.positiveTags || [])
+      setNegativeTags(review.negativeTags || [])
       setImprovements(review.improvements || [])
       setAttachments(review.attachments || [])
     } else {
@@ -152,6 +156,8 @@ export default function ReviewModal({ open, review, onClose }) {
       setScores({ expression: 3, jobUnderstanding: 3, projectFamiliarity: 3, businessThinking: 3, technicalAbility: 3, composure: 3, questionQuality: 3, overall: 3 })
       setQuestions([])
       setTags([])
+      setPositiveTags([])
+      setNegativeTags([])
       setImprovements([])
       setAttachments([])
       setAiAnalyzing(false)
@@ -183,6 +189,7 @@ export default function ReviewModal({ open, review, onClose }) {
 
   const toggleTag = (tag) => {
     setTags((prev) => prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag])
+    setNegativeTags((prev) => prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag])
   }
 
   const updateQuestion = (qId, field, value) => {
@@ -325,6 +332,15 @@ export default function ReviewModal({ open, review, onClose }) {
     if (Array.isArray(result.questions)) setQuestions(result.questions)
     if (Array.isArray(result.improvements)) setImprovements(result.improvements)
     if (Array.isArray(result.tags)) setTags(result.tags)
+    if (Array.isArray(result.positiveTags)) setPositiveTags(result.positiveTags)
+    if (Array.isArray(result.negativeTags)) setNegativeTags(result.negativeTags)
+    // Combine positive + negative into tags for backward compat display
+    const combined = [
+      ...(Array.isArray(result.positiveTags) ? result.positiveTags : []),
+      ...(Array.isArray(result.negativeTags) ? result.negativeTags : []),
+    ]
+    if (combined.length > 0) setTags(combined)
+    else if (Array.isArray(result.tags)) setTags(result.tags)
 
     // Persist AI metadata for handleSave
     aiMetaRef.current = aiMetadata
@@ -369,6 +385,7 @@ export default function ReviewModal({ open, review, onClose }) {
       round, interviewType, interviewDate, duration, interviewerInfo,
       result, rating: avgRating, note, strengths, weaknesses,
       scores, questions, tags,
+      positiveTags, negativeTags,
       improvements: improvements.filter((i) => i.action.trim()),
       attachments,
       aiAnalysis: aiMetaRef.current ? {
@@ -646,14 +663,14 @@ export default function ReviewModal({ open, review, onClose }) {
                         className="px-3 py-1.5 rounded-lg text-xs font-medium bg-offer-primary text-white hover:bg-offer-accent transition-colors">添加到复盘</button>
                       {selectedFiles.some((f) => f.name.toLowerCase().endsWith('.docx')) && (
                         <button onClick={handleAiAnalyze} disabled={aiAnalyzing}
-                          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-600 text-white hover:bg-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5">
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-colors disabled:cursor-not-allowed flex items-center gap-1.5 ${aiAnalyzing ? 'ai-pulse bg-purple-700' : 'bg-purple-600 hover:bg-purple-500'}`}>
                           {aiAnalyzing ? (
                             <>
                               <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none">
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                               </svg>
-                              AI 正在分析...
+                              <span className="ai-dots">AI 正在分析<span>.</span><span>.</span><span>.</span></span>
                             </>
                           ) : (
                             <>

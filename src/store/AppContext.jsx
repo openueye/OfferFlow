@@ -32,7 +32,7 @@ export function isRepliedJob(job) {
 
 export function hasInterviewExperience(job) {
   if (Array.isArray(job.interviewRounds) && job.interviewRounds.length > 0) return true
-  return INTERVIEW_STATUSES.includes(job.status) || job.status === 'Offer'
+  return INTERVIEW_STATUSES.includes(job.status) || job.status === 'Offer' || job.status === '已结束'
 }
 
 export function getFallbackInterviewRounds(job) {
@@ -42,6 +42,7 @@ export function getFallbackInterviewRounds(job) {
   if (job.status === '三面中') return [{ round: '一面', status: '已通过' }, { round: '二面', status: '已通过' }, { round: '三面', status: '进行中' }]
   if (job.status === '终面中') return [{ round: '一面', status: '已通过' }, { round: '二面', status: '已通过' }, { round: '三面', status: '已通过' }, { round: '终面', status: '进行中' }]
   if (job.status === 'Offer') return [{ round: '一面', status: '已通过' }]
+  if (job.status === '已结束') return [{ round: '一面', status: '已结束' }]
   return []
 }
 
@@ -346,6 +347,8 @@ export function AppProvider({ children }) {
       const newReview = {
         ...result.review,
         attachments: Array.isArray(result.review.attachments) ? result.review.attachments : [],
+        positiveTags: reviewData.positiveTags || [],
+        negativeTags: reviewData.negativeTags || [],
       }
       setReviews((prev) => [...prev, newReview])
       return newReview

@@ -186,7 +186,7 @@ export default function Insights() {
     // Tag frequency from reviews
     const tagFreq = {}
     reviews.forEach((r) => {
-      ;(r.tags || []).forEach((t) => {
+      ;(r.negativeTags || r.tags || []).forEach((t) => {
         tagFreq[t] = (tagFreq[t] || 0) + 1
       })
     })
