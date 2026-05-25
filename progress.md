@@ -4,7 +4,26 @@
 
 ---
 
-## 会话 13：AI 分析加载动画
+## 会话 28：Vercel 构建缓存修复
+
+**时间**：2026-05-25
+
+**内容**：
+- 诊断 Vercel 部署错误 `TypeError: The "path" argument must be of type string. Received undefined`
+- 根因分析：Vercel 构建缓存引用了已删除的像素猪加载动画文件（`LoadingAnimation.jsx`），缓存恢复后 Vercel 的 `modifyConfig` 步骤在尝试解析缓存路径时崩溃
+- 证据：相同代码在提交 `e24a597` 成功构建，在 `e2a66e3` 失败（唯一差异是构建缓存）
+- 修复：
+  1. 移除 `next.config.mjs` 中的空 `experimental: {}`（已知导致 Vercel 构建系统问题）
+  2. 确保 `prisma/schema.prisma` 使用 PostgreSQL 提供者
+  3. 强制清除 Vercel 构建缓存重新部署（`--force` 标志）
+
+**修改的文件**：
+- `next.config.mjs` — 清理配置，移除空 experimental 块
+- `task_plan.md` — 添加阶段 23
+
+**部署**：
+- Vercel 项目：`offer-flow-llm-feature`
+- 部署 URL：https://offer-flow-llm-feature-chixuuuu-s-projects.vercel.app
 
 **时间**：2026-05-22
 

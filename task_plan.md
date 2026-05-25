@@ -538,6 +538,23 @@
 
 **涉及的依赖**：mammoth @vercel/blob
 
+| **23** | **Vercel 构建缓存修复** | ✅ **已完成** | 2026-05-25 |
+
+### 阶段 23：Vercel 构建缓存修复 ✅
+
+**目标**：修复 Vercel 部署时 `TypeError: The "path" argument must be of type string. Received undefined` 构建错误。
+
+- [x] 诊断根因：Vercel 构建缓存引用了已删除的像素猪加载动画文件，导致 modifyConfig 步骤失败
+- [x] 修复 `next.config.mjs` — 移除空的 `experimental: {}` 对象（Vercel 构建系统对空 experimental 处理有 bug）
+- [x] 确保 `prisma/schema.prisma` 使用 PostgreSQL 提供者
+- [x] Vercel 强制清除缓存重新部署
+
+**修改的文件**：
+- `next.config.mjs` — 清理配置，移除空 experimental 块
+
+**已回退**
+- [x] 像素猪 AI 加载动画 — 2026-05-23 回退（Vercel 构建错误，恢复旧 CSS 动画 + spinner 加载态）
+
 ### 待规划
 - [ ] 多设备数据同步
 - [ ] 数据导出（JSON / CSV / PDF）
@@ -547,6 +564,9 @@
 - [ ] 求职报告生成（PDF）
 - [ ] 多语言支持（中/英切换）
 - [ ] 移动端适配增强
+
+### 已回退
+- [x] 像素猪 AI 加载动画 — 2026-05-23 回退（Vercel 构建错误，恢复旧 CSS 动画 + spinner 加载态）
 
 ### 已修复 Bug
 - [x] 数据洞察总面试次数未计入「已结束」流程 — `hasInterviewExperience()` 和 `getFallbackInterviewRounds()` 增加 `已结束` 状态处理
