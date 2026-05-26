@@ -1,20 +1,23 @@
 'use client'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTheme } from '../store/ThemeContext'
 import { useAuth } from '../store/AuthContext'
 import { useApp } from '../store/AppContext'
+import TaskPopover from './TaskPopover'
 
 export default function Navbar() {
   const { theme, toggleTheme } = useTheme()
   const isDark = theme === 'dark'
   const { user, logout } = useAuth()
-  const { addToast } = useApp()
+  const { addToast, tasks, jobs } = useApp()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
+  const [popoverOpen, setPopoverOpen] = useState(false)
   const menuRef = useRef(null)
   const avatarRef = useRef(null)
+  const bellRef = useRef(null)
 
   // Close menu on click outside / Escape
   useEffect(() => {
@@ -38,6 +41,36 @@ export default function Navbar() {
     }
   }, [menuOpen])
 
+  const hasUpcomingTasks = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10)
+    const end = new Date()
+    end.setDate(end.getDate() + 3)
+    const endStr = end.toISOString().slice(0, 10)
+    return tasks.some((t) => !t.done && t.date >= today && t.date <= endStr)
+  }, [tasks])
+
+  // Close popover on click outside / Escape
+  useEffect(() => {
+    if (!popoverOpen) return
+    const handleClick = (e) => {
+      if (
+        bellRef.current && !bellRef.current.contains(e.target) &&
+        (!e.target.closest || !e.target.closest('[data-popover-content]'))
+      ) {
+        setPopoverOpen(false)
+      }
+    }
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') setPopoverOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    document.addEventListener('keydown', handleEsc)
+    return () => {
+      document.removeEventListener('mousedown', handleClick)
+      document.removeEventListener('keydown', handleEsc)
+    }
+  }, [popoverOpen])
+
   const handleLogout = async () => {
     setMenuOpen(false)
     addToast('已退出登录', 'success')
@@ -50,12 +83,8 @@ export default function Navbar() {
     setTimeout(() => router.push('/auth/login'), 400)
   }
 
-  const handleAdd = () => {
-    alert('新增记录（功能待实现）')
-  }
-
   const handleNotification = () => {
-    alert('通知中心（功能待实现）')
+    setPopoverOpen((prev) => !prev)
   }
 
   const avatarLetter = user?.username ? user.username[0].toUpperCase() : 'U'
@@ -120,30 +149,31 @@ export default function Navbar() {
           )}
         </button>
 
-        <button
-          onClick={handleAdd}
-          className="btn-gradient h-9 px-4 rounded-lg text-white text-sm font-medium flex items-center gap-1.5"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          新增
-        </button>
+        <div className="relative">
+          <button
+            ref={bellRef}
+            onClick={handleNotification}
+            className="w-9 h-9 rounded-lg bg-theme-icon-btn border border-theme-border flex items-center justify-center text-theme-muted hover:text-theme-text hover:border-offer-primary transition-all relative"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+              />
+            </svg>
+            {hasUpcomingTasks && (
+              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-red-500" />
+            )}
+          </button>
 
-        <button
-          onClick={handleNotification}
-          className="w-9 h-9 rounded-lg bg-theme-icon-btn border border-theme-border flex items-center justify-center text-theme-muted hover:text-theme-text hover:border-offer-primary transition-all relative"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-            />
-          </svg>
-          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-red-500" />
-        </button>
+          <TaskPopover
+            open={popoverOpen}
+            tasks={tasks}
+            jobs={jobs}
+          />
+        </div>
 
         {/* User avatar + dropdown */}
         <div className="relative">
