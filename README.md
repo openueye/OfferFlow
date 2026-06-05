@@ -53,11 +53,13 @@
 ### Windows 一键部署
 
 ```
-1. 双击项目根目录的 setup.bat
-2. 脚本自动完成：安装依赖 → 切换 SQLite → 生成数据库 → 初始化配置
-3. 运行 npm run dev
-4. 浏览器打开 http://localhost:3000
-5. 注册账号 → 进入「设置」→ 配置 LLM API Key → 开始使用
+1. 解压下载的 zip 文件
+2. 双击项目根目录的 setup.bat
+   脚本自动完成：安装依赖 → 切换 SQLite → 生成数据库 → 初始化配置
+3. 在目录中打开终端（或在 VS Code 中点 + 号新开终端，cd 到解压后文件夹的位置）
+4. 运行 npm run dev
+5. 浏览器打开 http://localhost:3000
+6. 注册账号 → 进入「设置」→ 配置 LLM API Key → 开始使用
 ```
 
 ### 手动部署（Windows / macOS / Linux）
