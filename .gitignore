@@ -14,6 +14,8 @@ dist
 .env
 .env.*
 !.env.example
+!.env.sqlite
+!.env.pg
 
 
 # Editor directories and files

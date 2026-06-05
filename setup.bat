@@ -3,7 +3,7 @@ chcp 65001 >nul
 title OfferFlow 本地部署
 
 echo ============================================
-echo   OfferFlow — 求职全流程管理工具
+echo   OfferFlow - 求职全流程管理工具
 echo   本地部署脚本
 echo ============================================
 echo.
@@ -25,10 +25,8 @@ echo.
 echo [2/4] 安装项目依赖...
 call npm install
 if %ERRORLEVEL% NEQ 0 (
-    echo.
     echo [提示] npm install 失败。如果网络超时，可尝试设置镜像源：
     echo        npm config set registry https://registry.npmmirror.com
-    echo.
     pause
     exit /b 1
 )
@@ -64,7 +62,7 @@ if not exist .env (
 
 echo.
 echo ============================================
-echo   ✅ 部署完成！
+echo   部署完成！
 echo ============================================
 echo.
 echo   启动命令：npm run dev
@@ -73,7 +71,7 @@ echo.
 echo   首次使用：
 echo     1. 浏览器打开 http://localhost:3000
 echo     2. 注册一个账号
-echo     3. 进入「设置」→「AI 模型配置」
+echo     3. 进入"设置"-"AI 模型配置"
 echo     4. 填入你的 LLM API Key 即可使用 AI 面试分析
 echo.
 pause

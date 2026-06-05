@@ -12,8 +12,8 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
-    "db:sqlite": "cp prisma/schema.sqlite.prisma prisma/schema.prisma && cp .env.sqlite .env && prisma generate && echo '✅ Switched to SQLite (local dev)'",
-    "db:pg": "cp prisma/schema.pg.prisma prisma/schema.prisma && cp .env.pg .env && prisma generate && echo '✅ Switched to PostgreSQL (Vercel deploy)'"
+    "db:sqlite": "node -e \"require('fs').copyFileSync('prisma/schema.sqlite.prisma','prisma/schema.prisma');require('fs').copyFileSync('.env.sqlite','.env')\" && prisma generate && echo Switched to SQLite (local dev)",
+    "db:pg": "node -e \"require('fs').copyFileSync('prisma/schema.pg.prisma','prisma/schema.prisma');require('fs').copyFileSync('.env.pg','.env')\" && prisma generate && echo Switched to PostgreSQL (Vercel deploy)"
   },
   "dependencies": {
     "@prisma/client": "^6.5.0",
