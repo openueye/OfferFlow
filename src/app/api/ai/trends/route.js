@@ -5,12 +5,22 @@ import { getAuthUser } from '@/lib/auth'
 import { callLLMWithRetry } from '@/lib/llm/client'
 import { buildTrendsPrompt } from '@/lib/llm/prompts'
 
-export async function GET() {
+export async function GET(request) {
   try {
     const user = await getAuthUser()
     if (!user) {
       return NextResponse.json({ error: '未登录' }, { status: 401 })
     }
+
+    // 可选：从请求头中提取前端传入的 LLM 配置（来自 localStorage）
+    const llmConfig = {
+      apiKey: request.headers.get('x-llm-api-key') || undefined,
+      baseUrl: request.headers.get('x-llm-base-url') || undefined,
+      model: request.headers.get('x-llm-model') || undefined,
+      provider: request.headers.get('x-llm-provider') || undefined,
+    }
+    const hasLlmConfig = Object.values(llmConfig).some(Boolean)
+    const effectiveLlmConfig = hasLlmConfig ? llmConfig : undefined
 
     // 1. Fetch all reviews for this user
     const reviews = await prisma.review.findMany({
@@ -49,6 +59,7 @@ export async function GET() {
       llmResult = await callLLMWithRetry({
         systemPrompt: system,
         userPrompt,
+        llmConfig: effectiveLlmConfig,
       })
     } catch (err) {
       return NextResponse.json(

@@ -6,6 +6,15 @@ import ModalHeader from './ModalHeader'
 import GlowCard from './GlowCard'
 import AiResultPanel from './AiResultPanel'
 
+// 从 localStorage 读取用户自定义的 LLM 配置
+function getLlmConfigFromStorage() {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = localStorage.getItem('offerflow_llm_config')
+    return raw ? JSON.parse(raw) : null
+  } catch { return null }
+}
+
 const SCORE_LABELS = {
   expression: '表达清晰度',
   jobUnderstanding: '岗位理解',
@@ -298,6 +307,15 @@ export default function ReviewModal({ open, review, onClose }) {
       const formData = new FormData()
       formData.append('file', docxFile)
       formData.append('jobTitle', jobTitle)
+
+      // 携带用户自定义的 LLM 配置（从 localStorage 读取）
+      const llmConfig = getLlmConfigFromStorage()
+      if (llmConfig) {
+        formData.append('llmApiKey', llmConfig.llmApiKey || '')
+        formData.append('llmBaseUrl', llmConfig.llmBaseUrl || '')
+        formData.append('llmModel', llmConfig.llmModel || '')
+        formData.append('llmProvider', llmConfig.llmProvider || '')
+      }
 
       const res = await fetch('/api/ai/analyze', {
         method: 'POST',

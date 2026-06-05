@@ -15,6 +15,17 @@ export async function POST(request, { params }) {
 
     const { id } = await params
 
+    // 可选：从请求体中提取前端传入的 LLM 配置（来自 localStorage）
+    let effectiveLlmConfig
+    try {
+      const body = await request.clone().json()
+      if (body?.llmConfig?.apiKey) {
+        effectiveLlmConfig = body.llmConfig
+      }
+    } catch {
+      // 请求体可能为空，忽略
+    }
+
     // 1. Verify review ownership
     const review = await prisma.review.findUnique({ where: { id } })
     if (!review || review.userId !== user.id) {
@@ -63,6 +74,7 @@ export async function POST(request, { params }) {
     const llmResult = await callLLMWithRetry({
       systemPrompt: system,
       userPrompt,
+      llmConfig: effectiveLlmConfig,
     })
 
     let analysis

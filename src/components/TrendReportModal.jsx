@@ -20,7 +20,24 @@ export default function TrendReportModal({ open, onClose }) {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch('/api/ai/trends')
+      // 携带用户自定义的 LLM 配置（从 localStorage 读取）
+      const headers = {}
+      if (typeof window !== 'undefined') {
+        try {
+          const raw = localStorage.getItem('offerflow_llm_config')
+          if (raw) {
+            const cfg = JSON.parse(raw)
+            if (cfg.llmApiKey) {
+              headers['x-llm-api-key'] = cfg.llmApiKey
+              headers['x-llm-base-url'] = cfg.llmBaseUrl || ''
+              headers['x-llm-model'] = cfg.llmModel || ''
+              headers['x-llm-provider'] = cfg.llmProvider || ''
+            }
+          }
+        } catch {}
+      }
+
+      const res = await fetch('/api/ai/trends', { headers })
       if (!res.ok) {
         const err = await res.json()
         throw new Error(err.error || '获取趋势分析失败')

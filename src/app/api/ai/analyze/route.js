@@ -17,6 +17,17 @@ export async function POST(request) {
     const file = formData.get('file')
     const jobTitle = formData.get('jobTitle')
 
+    // 可选：从表单中提取前端传入的 LLM 配置（来自 localStorage）
+    const llmConfig = {
+      apiKey: formData.get('llmApiKey') || undefined,
+      baseUrl: formData.get('llmBaseUrl') || undefined,
+      model: formData.get('llmModel') || undefined,
+      provider: formData.get('llmProvider') || undefined,
+    }
+    // 没有传入任何字段时保持 undefined，让 client.js 走环境变量
+    const hasLlmConfig = Object.values(llmConfig).some(Boolean)
+    const effectiveLlmConfig = hasLlmConfig ? llmConfig : undefined
+
     if (!file || !jobTitle) {
       return NextResponse.json(
         { error: '缺少文件或岗位名称' },
@@ -74,6 +85,7 @@ export async function POST(request) {
       llmResult = await callLLMWithRetry({
         systemPrompt: system,
         userPrompt,
+        llmConfig: effectiveLlmConfig,
       })
     } catch (err) {
       return NextResponse.json(
@@ -111,6 +123,3 @@ export async function POST(request) {
     )
   }
 }
-
-// Note: In Next.js 16 with App Router, bodyParser: false is not needed
-// for formData - it's handled automatically.

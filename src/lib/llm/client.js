@@ -1,4 +1,3 @@
-// src/lib/llm/client.js
 import { getLLMConfig } from './config.js'
 
 export class LLMError extends Error {
@@ -12,14 +11,23 @@ export class LLMError extends Error {
 
 /**
  * 调用 LLM (OpenAI-compatible API)
+ *
  * @param {object} options
  * @param {string} options.systemPrompt - 系统角色设定
  * @param {string} options.userPrompt   - 用户输入
+ * @param {object} [options.llmConfig]  - 可选，动态传入的 LLM 配置（覆盖环境变量）
  * @param {number} [options.timeoutMs=60000] - 超时毫秒
  * @returns {Promise<{ content: string, model: string, usage: object }>}
  */
-export async function callLLM({ systemPrompt, userPrompt, timeoutMs = 60000 }) {
-  const config = getLLMConfig()
+export async function callLLM({ systemPrompt, userPrompt, llmConfig, timeoutMs = 60000 }) {
+  const config = getLLMConfig(llmConfig)
+
+  if (!config.apiKey) {
+    throw new LLMError(
+      'LLM_API_KEY 未配置。请在「设置 → AI 模型配置」中填入你的 API Key。',
+      { retryable: false }
+    )
+  }
 
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), timeoutMs)
