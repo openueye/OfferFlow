@@ -270,4 +270,4 @@ offerFlow-LLM/
 
 ## License
 
-MIT © 2026 xuuuu-cpu
+MIT © 2026 [OpenUEye]
