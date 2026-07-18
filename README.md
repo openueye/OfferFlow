@@ -247,10 +247,12 @@ npm run lint:fix
 
 ---
 
-## 项目结构
+## 项目结构与命名
+
+文件和目录命名遵循 [命名规范](docs/naming-conventions.md)。
 
 ```
-offerFlow-LLM/
+offerflow/
 ├── prisma/              # 数据库模型（SQLite / PostgreSQL 双 schema）
 ├── src/
 │   ├── app/             # Next.js App Router
@@ -262,6 +264,7 @@ offerFlow-LLM/
 │   ├── lib/             # 工具库（Prisma、JWT、LLM、AI 解析）
 │   ├── store/           # 全局状态管理（Context）
 │   └── utils/           # 工具函数（IndexedDB 存储）
+├── tests/               # Node.js 测试（*.test.js）
 ├── setup.bat            # Windows 快速部署脚本
 └── .env.example         # 环境变量模板
 ```

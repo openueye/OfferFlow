@@ -9,7 +9,7 @@ async function getTokenPayload(request) {
   return verifyToken(token)
 }
 
-export default async function middleware(request) {
+export default async function proxy(request) {
   const { pathname } = request.nextUrl
 
   // Public routes — always allow
@@ -18,8 +18,7 @@ export default async function middleware(request) {
     pathname.startsWith('/api/auth') ||
     pathname.startsWith('/_next') ||
     pathname === '/favicon.svg' ||
-    pathname.startsWith('/images') ||
-    pathname.startsWith('/api/debug')
+    pathname.startsWith('/images')
   ) {
     return NextResponse.next()
   }
@@ -47,7 +46,5 @@ export default async function middleware(request) {
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.svg|images).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.svg|images).*)'],
 }
