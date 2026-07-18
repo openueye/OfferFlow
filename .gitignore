@@ -15,7 +15,12 @@ dist
 .env.*
 !.env.example
 !.env.sqlite
-!.env.pg
+!.env.pg.example
+
+# Local application data
+prisma/dev.db
+public/uploads/reviews/*
+!public/uploads/reviews/.gitkeep
 
 
 # Editor directories and files
