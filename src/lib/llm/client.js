@@ -4,7 +4,7 @@ export function buildChatCompletionsUrl(baseUrl) {
   return new URL('chat/completions', `${baseUrl.replace(/\/+$/, '')}/`).href
 }
 
-export class LLMError extends Error {
+class LLMError extends Error {
   constructor(message, { status, retryable = false } = {}) {
     super(message)
     this.name = 'LLMError'

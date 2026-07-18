@@ -9,13 +9,22 @@ import { useAuth } from './AuthContext'
 const AppContext = createContext(null)
 
 const ROUND_ORDER = ['一面', '二面', '三面', '终面']
-const STATUS_ROUND_MAP = { '一面中': '一面', '二面中': '二面', '三面中': '三面', '终面中': '终面' }
+const STATUS_ROUND_MAP = { 一面中: '一面', 二面中: '二面', 三面中: '三面', 终面中: '终面' }
 
 // ---- Centralized statistics helpers ----
 
-export const APPLIED_STATUSES = ['已投递', 'OA / 笔试', '一面中', '二面中', '三面中', '终面中', 'Offer', '已结束']
-export const REPLIED_STATUSES = ['OA / 笔试', '一面中', '二面中', '三面中', '终面中', 'Offer']
-export const INTERVIEW_STATUSES = ['一面中', '二面中', '三面中', '终面中']
+const APPLIED_STATUSES = [
+  '已投递',
+  'OA / 笔试',
+  '一面中',
+  '二面中',
+  '三面中',
+  '终面中',
+  'Offer',
+  '已结束',
+]
+const REPLIED_STATUSES = ['OA / 笔试', '一面中', '二面中', '三面中', '终面中', 'Offer']
+const INTERVIEW_STATUSES = ['一面中', '二面中', '三面中', '终面中']
 
 export function isAppliedJob(job) {
   return APPLIED_STATUSES.includes(job.status)
@@ -32,15 +41,33 @@ export function isRepliedJob(job) {
 
 export function hasInterviewExperience(job) {
   if (Array.isArray(job.interviewRounds) && job.interviewRounds.length > 0) return true
-  return INTERVIEW_STATUSES.includes(job.status) || job.status === 'Offer' || job.status === '已结束'
+  return (
+    INTERVIEW_STATUSES.includes(job.status) || job.status === 'Offer' || job.status === '已结束'
+  )
 }
 
-export function getFallbackInterviewRounds(job) {
-  if (Array.isArray(job.interviewRounds) && job.interviewRounds.length > 0) return job.interviewRounds
+function getFallbackInterviewRounds(job) {
+  if (Array.isArray(job.interviewRounds) && job.interviewRounds.length > 0)
+    return job.interviewRounds
   if (job.status === '一面中') return [{ round: '一面', status: '进行中' }]
-  if (job.status === '二面中') return [{ round: '一面', status: '已通过' }, { round: '二面', status: '进行中' }]
-  if (job.status === '三面中') return [{ round: '一面', status: '已通过' }, { round: '二面', status: '已通过' }, { round: '三面', status: '进行中' }]
-  if (job.status === '终面中') return [{ round: '一面', status: '已通过' }, { round: '二面', status: '已通过' }, { round: '三面', status: '已通过' }, { round: '终面', status: '进行中' }]
+  if (job.status === '二面中')
+    return [
+      { round: '一面', status: '已通过' },
+      { round: '二面', status: '进行中' },
+    ]
+  if (job.status === '三面中')
+    return [
+      { round: '一面', status: '已通过' },
+      { round: '二面', status: '已通过' },
+      { round: '三面', status: '进行中' },
+    ]
+  if (job.status === '终面中')
+    return [
+      { round: '一面', status: '已通过' },
+      { round: '二面', status: '已通过' },
+      { round: '三面', status: '已通过' },
+      { round: '终面', status: '进行中' },
+    ]
   if (job.status === 'Offer') return [{ round: '一面', status: '已通过' }]
   if (job.status === '已结束') return [{ round: '一面', status: '已结束' }]
   return []
@@ -62,7 +89,11 @@ export function getResumeStats(resumeId, jobs) {
   const interviewRoundCount = linked.reduce((sum, j) => sum + getInterviewRoundCount(j), 0)
   const offerCount = linked.filter(isOfferJob).length
   return {
-    sentCount, replyCount, interviewPeopleCount, interviewRoundCount, offerCount,
+    sentCount,
+    replyCount,
+    interviewPeopleCount,
+    interviewRoundCount,
+    offerCount,
     interviewRate: sentCount > 0 ? Math.round((interviewPeopleCount / sentCount) * 100) : 0,
     offerRate: sentCount > 0 ? Math.round((offerCount / sentCount) * 100) : 0,
   }
@@ -73,7 +104,7 @@ export function syncInterviewRounds(job) {
   const status = job.status
   const targetRound = STATUS_ROUND_MAP[status]
 
-  if (targetRound && !rounds.some(r => r.round === targetRound)) {
+  if (targetRound && !rounds.some((r) => r.round === targetRound)) {
     rounds.push({
       id: crypto.randomUUID(),
       round: targetRound,
@@ -87,7 +118,7 @@ export function syncInterviewRounds(job) {
   if (targetRound && ['二面中', '三面中', '终面中'].includes(status)) {
     const currentIdx = ROUND_ORDER.indexOf(targetRound)
     for (let i = 0; i < currentIdx; i++) {
-      const prev = rounds.find(r => r.round === ROUND_ORDER[i])
+      const prev = rounds.find((r) => r.round === ROUND_ORDER[i])
       if (prev && prev.status === '进行中') {
         prev.status = '已通过'
       }
@@ -96,8 +127,11 @@ export function syncInterviewRounds(job) {
 
   if (status === 'Offer') {
     for (let i = ROUND_ORDER.length - 1; i >= 0; i--) {
-      const found = rounds.find(r => r.round === ROUND_ORDER[i] && r.status === '进行中')
-      if (found) { found.status = '已通过'; break }
+      const found = rounds.find((r) => r.round === ROUND_ORDER[i] && r.status === '进行中')
+      if (found) {
+        found.status = '已通过'
+        break
+      }
     }
   }
 
@@ -133,14 +167,18 @@ function loadFromStorage(key, fallback) {
   try {
     const raw = localStorage.getItem(key)
     if (raw) return JSON.parse(raw)
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return fallback
 }
 
 function saveToStorage(key, data) {
   try {
     localStorage.setItem(key, JSON.stringify(data))
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 export function AppProvider({ children }) {
@@ -249,143 +287,194 @@ export function AppProvider({ children }) {
   // ---- Async CRUD methods ----
 
   // Jobs
-  const addJob = useCallback(async (formData) => {
-    try {
-      const result = await apiFetch('/api/jobs', { method: 'POST', body: JSON.stringify(formData) })
-      const newJob = syncInterviewRounds({ ...formData, ...result.job })
-      setJobs((prev) => [...prev, newJob])
-      return newJob
-    } catch (err) {
-      addToast(err.message, 'error')
-    }
-  }, [setJobs, addToast])
+  const addJob = useCallback(
+    async (formData) => {
+      try {
+        const result = await apiFetch('/api/jobs', {
+          method: 'POST',
+          body: JSON.stringify(formData),
+        })
+        const newJob = syncInterviewRounds({ ...formData, ...result.job })
+        setJobs((prev) => [...prev, newJob])
+        return newJob
+      } catch (err) {
+        addToast(err.message, 'error')
+      }
+    },
+    [setJobs, addToast]
+  )
 
-  const updateJob = useCallback(async (id, patch) => {
-    try {
-      await apiFetch('/api/jobs', { method: 'PUT', body: JSON.stringify({ id, ...patch }) })
-      setJobs((prev) => prev.map((j) => j.id === id ? syncInterviewRounds({ ...j, ...patch }) : j))
-    } catch (err) {
-      addToast(err.message, 'error')
-    }
-  }, [setJobs, addToast])
+  const updateJob = useCallback(
+    async (id, patch) => {
+      try {
+        await apiFetch('/api/jobs', { method: 'PUT', body: JSON.stringify({ id, ...patch }) })
+        setJobs((prev) =>
+          prev.map((j) => (j.id === id ? syncInterviewRounds({ ...j, ...patch }) : j))
+        )
+      } catch (err) {
+        addToast(err.message, 'error')
+      }
+    },
+    [setJobs, addToast]
+  )
 
-  const deleteJob = useCallback(async (ids) => {
-    const idList = Array.isArray(ids) ? ids : [ids]
-    if (!idList.length) return
-    try {
-      await apiFetch('/api/jobs', { method: 'DELETE', body: JSON.stringify({ ids: idList }) })
-      setJobs((prev) => prev.filter((j) => !idList.includes(j.id)))
-    } catch (err) {
-      addToast(err.message, 'error')
-    }
-  }, [setJobs, addToast])
+  const deleteJob = useCallback(
+    async (ids) => {
+      const idList = Array.isArray(ids) ? ids : [ids]
+      if (!idList.length) return
+      try {
+        await apiFetch('/api/jobs', { method: 'DELETE', body: JSON.stringify({ ids: idList }) })
+        setJobs((prev) => prev.filter((j) => !idList.includes(j.id)))
+      } catch (err) {
+        addToast(err.message, 'error')
+      }
+    },
+    [setJobs, addToast]
+  )
 
   // Resumes
-  const addResume = useCallback(async (formData) => {
-    try {
-      const result = await apiFetch('/api/resumes', { method: 'POST', body: JSON.stringify(formData) })
-      const newResume = result.resume
-      setResumes((prev) => [...prev, newResume])
-      return newResume
-    } catch (err) {
-      addToast(err.message, 'error')
-    }
-  }, [setResumes, addToast])
+  const addResume = useCallback(
+    async (formData) => {
+      try {
+        const result = await apiFetch('/api/resumes', {
+          method: 'POST',
+          body: JSON.stringify(formData),
+        })
+        const newResume = result.resume
+        setResumes((prev) => [...prev, newResume])
+        return newResume
+      } catch (err) {
+        addToast(err.message, 'error')
+      }
+    },
+    [setResumes, addToast]
+  )
 
-  const updateResume = useCallback(async (id, patch) => {
-    try {
-      await apiFetch('/api/resumes', { method: 'PUT', body: JSON.stringify({ id, ...patch }) })
-      setResumes((prev) => prev.map((r) => r.id === id ? { ...r, ...patch } : r))
-    } catch (err) {
-      addToast(err.message, 'error')
-    }
-  }, [setResumes, addToast])
+  const updateResume = useCallback(
+    async (id, patch) => {
+      try {
+        await apiFetch('/api/resumes', { method: 'PUT', body: JSON.stringify({ id, ...patch }) })
+        setResumes((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)))
+      } catch (err) {
+        addToast(err.message, 'error')
+      }
+    },
+    [setResumes, addToast]
+  )
 
-  const deleteResume = useCallback(async (id) => {
-    try {
-      await apiFetch(`/api/resumes?id=${id}`, { method: 'DELETE' })
-      setResumes((prev) => prev.filter((r) => r.id !== id))
-    } catch (err) {
-      addToast(err.message, 'error')
-    }
-  }, [setResumes, addToast])
+  const deleteResume = useCallback(
+    async (id) => {
+      try {
+        await apiFetch(`/api/resumes?id=${id}`, { method: 'DELETE' })
+        setResumes((prev) => prev.filter((r) => r.id !== id))
+      } catch (err) {
+        addToast(err.message, 'error')
+      }
+    },
+    [setResumes, addToast]
+  )
 
   // Tasks
-  const addTask = useCallback(async (formData) => {
-    try {
-      const result = await apiFetch('/api/tasks', { method: 'POST', body: JSON.stringify(formData) })
-      const newTask = result.task
-      setTasks((prev) => [...prev, newTask])
-      return newTask
-    } catch (err) {
-      addToast(err.message, 'error')
-    }
-  }, [setTasks, addToast])
+  const addTask = useCallback(
+    async (formData) => {
+      try {
+        const result = await apiFetch('/api/tasks', {
+          method: 'POST',
+          body: JSON.stringify(formData),
+        })
+        const newTask = result.task
+        setTasks((prev) => [...prev, newTask])
+        return newTask
+      } catch (err) {
+        addToast(err.message, 'error')
+      }
+    },
+    [setTasks, addToast]
+  )
 
-  const updateTask = useCallback(async (id, patch) => {
-    try {
-      await apiFetch('/api/tasks', { method: 'PUT', body: JSON.stringify({ id, ...patch }) })
-      setTasks((prev) => prev.map((t) => t.id === id ? { ...t, ...patch } : t))
-    } catch (err) {
-      addToast(err.message, 'error')
-    }
-  }, [setTasks, addToast])
+  const updateTask = useCallback(
+    async (id, patch) => {
+      try {
+        await apiFetch('/api/tasks', { method: 'PUT', body: JSON.stringify({ id, ...patch }) })
+        setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)))
+      } catch (err) {
+        addToast(err.message, 'error')
+      }
+    },
+    [setTasks, addToast]
+  )
 
-  const deleteTask = useCallback(async (id) => {
-    try {
-      await apiFetch(`/api/tasks?id=${id}`, { method: 'DELETE' })
-      setTasks((prev) => prev.filter((t) => t.id !== id))
-    } catch (err) {
-      addToast(err.message, 'error')
-    }
-  }, [setTasks, addToast])
+  const deleteTask = useCallback(
+    async (id) => {
+      try {
+        await apiFetch(`/api/tasks?id=${id}`, { method: 'DELETE' })
+        setTasks((prev) => prev.filter((t) => t.id !== id))
+      } catch (err) {
+        addToast(err.message, 'error')
+      }
+    },
+    [setTasks, addToast]
+  )
 
   // Reviews
-  const addReview = useCallback(async (reviewData) => {
-    try {
-      const result = await apiFetch('/api/reviews', { method: 'POST', body: JSON.stringify(reviewData) })
-      const newReview = {
-        ...result.review,
-        attachments: Array.isArray(result.review.attachments) ? result.review.attachments : [],
-        positiveTags: reviewData.positiveTags || [],
-        negativeTags: reviewData.negativeTags || [],
+  const addReview = useCallback(
+    async (reviewData) => {
+      try {
+        const result = await apiFetch('/api/reviews', {
+          method: 'POST',
+          body: JSON.stringify(reviewData),
+        })
+        const newReview = {
+          ...result.review,
+          attachments: Array.isArray(result.review.attachments) ? result.review.attachments : [],
+          positiveTags: reviewData.positiveTags || [],
+          negativeTags: reviewData.negativeTags || [],
+        }
+        setReviews((prev) => [...prev, newReview])
+        return newReview
+      } catch (err) {
+        addToast(err.message, 'error')
       }
-      setReviews((prev) => [...prev, newReview])
-      return newReview
-    } catch (err) {
-      addToast(err.message, 'error')
-    }
-  }, [setReviews, addToast])
+    },
+    [setReviews, addToast]
+  )
 
-  const updateReview = useCallback(async (id, patch) => {
-    try {
-      await apiFetch('/api/reviews', { method: 'PUT', body: JSON.stringify({ id, ...patch }) })
-      setReviews((prev) => prev.map((r) =>
-        r.id === id
-          ? {
-              ...r,
-              ...patch,
-              attachments:
-                Array.isArray(patch.attachments)
-                  ? patch.attachments
-                  : r.attachments || [],
-            }
-          : r
-      ))
-    } catch (err) {
-      addToast(err.message, 'error')
-    }
-  }, [setReviews, addToast])
+  const updateReview = useCallback(
+    async (id, patch) => {
+      try {
+        await apiFetch('/api/reviews', { method: 'PUT', body: JSON.stringify({ id, ...patch }) })
+        setReviews((prev) =>
+          prev.map((r) =>
+            r.id === id
+              ? {
+                  ...r,
+                  ...patch,
+                  attachments: Array.isArray(patch.attachments)
+                    ? patch.attachments
+                    : r.attachments || [],
+                }
+              : r
+          )
+        )
+      } catch (err) {
+        addToast(err.message, 'error')
+      }
+    },
+    [setReviews, addToast]
+  )
 
-  const deleteReview = useCallback(async (id) => {
-    try {
-      await deleteReviewAttachmentsByReviewId(id)
-      await apiFetch(`/api/reviews?id=${id}`, { method: 'DELETE' })
-      setReviews((prev) => prev.filter((r) => r.id !== id))
-    } catch (err) {
-      addToast(err.message, 'error')
-    }
-  }, [setReviews, addToast])
+  const deleteReview = useCallback(
+    async (id) => {
+      try {
+        await deleteReviewAttachmentsByReviewId(id)
+        await apiFetch(`/api/reviews?id=${id}`, { method: 'DELETE' })
+        setReviews((prev) => prev.filter((r) => r.id !== id))
+      } catch (err) {
+        addToast(err.message, 'error')
+      }
+    },
+    [setReviews, addToast]
+  )
 
   // Settings (localStorage only)
   const setSettings = useCallback((value) => {
@@ -397,19 +486,35 @@ export function AppProvider({ children }) {
   }, [])
 
   return (
-    <AppContext.Provider value={{
-      jobs, setJobs,
-      resumes, setResumes,
-      tasks, setTasks,
-      reviews, setReviews,
-      addJob, updateJob, deleteJob,
-      addResume, updateResume, deleteResume,
-      addTask, updateTask, deleteTask,
-      addReview, updateReview, deleteReview,
-      settings, setSettings,
-      toasts, addToast,
-      dataLoading,
-    }}>
+    <AppContext.Provider
+      value={{
+        jobs,
+        setJobs,
+        resumes,
+        setResumes,
+        tasks,
+        setTasks,
+        reviews,
+        setReviews,
+        addJob,
+        updateJob,
+        deleteJob,
+        addResume,
+        updateResume,
+        deleteResume,
+        addTask,
+        updateTask,
+        deleteTask,
+        addReview,
+        updateReview,
+        deleteReview,
+        settings,
+        setSettings,
+        toasts,
+        addToast,
+        dataLoading,
+      }}
+    >
       {children}
       <Toast />
     </AppContext.Provider>

@@ -89,7 +89,7 @@ export async function resolveSafeUrl(rawUrl, { lookup = dnsLookup } = {}) {
   return { url, address: addresses[0] }
 }
 
-export function requestPinnedUrl(
+function requestPinnedUrl(
   { url, address },
   {
     method = 'GET',

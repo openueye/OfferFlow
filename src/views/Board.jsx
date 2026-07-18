@@ -9,16 +9,66 @@ import GlowCard from '../components/GlowCard'
 import ActionMenuPortal from '../components/ActionMenuPortal'
 
 const COLUMNS = [
-  { key: '感兴趣', color: 'border-t-blue-500/40', headerColor: 'text-blue-400', bgColor: 'bg-blue-500/10' },
-  { key: '准备投递', color: 'border-t-amber-500/40', headerColor: 'text-amber-400', bgColor: 'bg-amber-500/10' },
-  { key: '已投递', color: 'border-t-cyan-500/40', headerColor: 'text-cyan-400', bgColor: 'bg-cyan-500/10' },
-  { key: 'OA / 笔试', color: 'border-t-orange-500/40', headerColor: 'text-orange-400', bgColor: 'bg-orange-500/10' },
-  { key: '一面中', color: 'border-t-offer-primary/40', headerColor: 'text-offer-accent', bgColor: 'bg-offer-primary/10' },
-  { key: '二面中', color: 'border-t-indigo-500/40', headerColor: 'text-indigo-400', bgColor: 'bg-indigo-500/10' },
-  { key: '三面中', color: 'border-t-violet-500/40', headerColor: 'text-violet-400', bgColor: 'bg-violet-500/10' },
-  { key: '终面中', color: 'border-t-pink-500/40', headerColor: 'text-pink-400', bgColor: 'bg-pink-500/10' },
-  { key: 'Offer', color: 'border-t-emerald-500/40', headerColor: 'text-emerald-400', bgColor: 'bg-emerald-500/10' },
-  { key: '已结束', color: 'border-t-red-500/40', headerColor: 'text-red-400', bgColor: 'bg-red-500/10' },
+  {
+    key: '感兴趣',
+    color: 'border-t-blue-500/40',
+    headerColor: 'text-blue-400',
+    bgColor: 'bg-blue-500/10',
+  },
+  {
+    key: '准备投递',
+    color: 'border-t-amber-500/40',
+    headerColor: 'text-amber-400',
+    bgColor: 'bg-amber-500/10',
+  },
+  {
+    key: '已投递',
+    color: 'border-t-cyan-500/40',
+    headerColor: 'text-cyan-400',
+    bgColor: 'bg-cyan-500/10',
+  },
+  {
+    key: 'OA / 笔试',
+    color: 'border-t-orange-500/40',
+    headerColor: 'text-orange-400',
+    bgColor: 'bg-orange-500/10',
+  },
+  {
+    key: '一面中',
+    color: 'border-t-offer-primary/40',
+    headerColor: 'text-offer-accent',
+    bgColor: 'bg-offer-primary/10',
+  },
+  {
+    key: '二面中',
+    color: 'border-t-indigo-500/40',
+    headerColor: 'text-indigo-400',
+    bgColor: 'bg-indigo-500/10',
+  },
+  {
+    key: '三面中',
+    color: 'border-t-violet-500/40',
+    headerColor: 'text-violet-400',
+    bgColor: 'bg-violet-500/10',
+  },
+  {
+    key: '终面中',
+    color: 'border-t-pink-500/40',
+    headerColor: 'text-pink-400',
+    bgColor: 'bg-pink-500/10',
+  },
+  {
+    key: 'Offer',
+    color: 'border-t-emerald-500/40',
+    headerColor: 'text-emerald-400',
+    bgColor: 'bg-emerald-500/10',
+  },
+  {
+    key: '已结束',
+    color: 'border-t-red-500/40',
+    headerColor: 'text-red-400',
+    bgColor: 'bg-red-500/10',
+  },
 ]
 
 function calcDays(dateStr) {
@@ -54,7 +104,9 @@ export default function Board() {
   const [followUpText, setFollowUpText] = useState('')
 
   const resumeMap = {}
-  resumes.forEach((r) => { resumeMap[r.id] = r })
+  resumes.forEach((r) => {
+    resumeMap[r.id] = r
+  })
 
   // ---- Drag handlers ----
   const handleDragStart = (e, jobId) => {
@@ -84,11 +136,14 @@ export default function Board() {
     const timeline = job.timeline || []
     await updateJob(jobId, {
       status: targetStatus,
-      timeline: [...timeline, {
-        date: new Date().toISOString().slice(0, 10),
-        action: '状态变更',
-        detail: `从 ${job.status} 更新为 ${targetStatus}`,
-      }],
+      timeline: [
+        ...timeline,
+        {
+          date: new Date().toISOString().slice(0, 10),
+          action: '状态变更',
+          detail: `从 ${job.status} 更新为 ${targetStatus}`,
+        },
+      ],
     })
     addToast(`状态已更新`, 'success')
     dragJobId.current = null
@@ -144,11 +199,14 @@ export default function Board() {
     const timeline = job.timeline || []
     await updateJob(job.id, {
       status: newStatus,
-      timeline: [...timeline, {
-        date: new Date().toISOString().slice(0, 10),
-        action: `标记为 ${label}`,
-        detail: newStatus === '已结束' ? '' : '',
-      }],
+      timeline: [
+        ...timeline,
+        {
+          date: new Date().toISOString().slice(0, 10),
+          action: `标记为 ${label}`,
+          detail: newStatus === '已结束' ? '' : '',
+        },
+      ],
     })
     addToast(`已标记为「${label}」`, 'success')
   }
@@ -178,7 +236,9 @@ export default function Board() {
     <div className="h-full flex flex-col px-6 py-6">
       <div className="mb-5">
         <h1 className="text-3xl font-bold tracking-tight text-white">投递看板</h1>
-        <p className="text-sm text-gray-400 dark:text-white/45 mt-1">用看板管理你的投递进度 — 拖拽卡片到其他列来更新状态</p>
+        <p className="text-sm text-gray-400 dark:text-white/45 mt-1">
+          用看板管理你的投递进度 — 拖拽卡片到其他列来更新状态
+        </p>
       </div>
 
       {/* Kanban Columns */}
@@ -195,12 +255,16 @@ export default function Board() {
               onDragLeave={handleDragLeave}
               onDrop={(e) => handleDrop(e, col.key)}
             >
-              <div className={`bg-white/[0.02] rounded-2xl border-t-2 ${col.color} ${isDragOver ? 'border-x border-b border-offer-accent bg-offer-primary/5' : 'border-x border-b border-white/10'} flex flex-col flex-1 transition-colors shadow-sm`}>
+              <div
+                className={`bg-white/[0.02] rounded-2xl border-t-2 ${col.color} ${isDragOver ? 'border-x border-b border-offer-accent bg-offer-primary/5' : 'border-x border-b border-white/10'} flex flex-col flex-1 transition-colors shadow-sm`}
+              >
                 {/* Column Header */}
                 <div className="flex items-center justify-between px-4 pt-3 pb-2">
                   <div className="flex items-center gap-2">
                     <span className={`text-sm font-semibold ${col.headerColor}`}>{col.key}</span>
-                    <span className="inline-flex min-w-6 h-6 items-center justify-center rounded-full border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 shadow-sm dark:border-white/10 dark:bg-white/10 dark:text-white/80">{colJobs.length}</span>
+                    <span className="inline-flex min-w-6 h-6 items-center justify-center rounded-full border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 shadow-sm dark:border-white/10 dark:bg-white/10 dark:text-white/80">
+                      {colJobs.length}
+                    </span>
                   </div>
                   <button
                     onClick={() => openAddForColumn(col.key)}
@@ -208,7 +272,12 @@ export default function Board() {
                     title={`新增 ${col.key}`}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 4v16m8-8H4"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -221,7 +290,10 @@ export default function Board() {
                       job={job}
                       resumeMap={resumeMap}
                       menuOpen={menuJobId === job.id}
-                      onToggleMenu={(e) => { e.stopPropagation(); setMenuJobId(menuJobId === job.id ? null : job.id) }}
+                      onToggleMenu={(e) => {
+                        e.stopPropagation()
+                        setMenuJobId(menuJobId === job.id ? null : job.id)
+                      }}
                       onCloseMenu={() => setMenuJobId(null)}
                       onClick={() => openDetail(job)}
                       onDragStart={(e) => handleDragStart(e, job.id)}
@@ -235,7 +307,9 @@ export default function Board() {
                     />
                   ))}
                   {colJobs.length === 0 && (
-                    <div className="py-8 text-center text-offer-muted text-xs">拖拽或点击 + 添加</div>
+                    <div className="py-8 text-center text-offer-muted text-xs">
+                      拖拽或点击 + 添加
+                    </div>
                   )}
                 </div>
               </div>
@@ -267,65 +341,115 @@ export default function Board() {
         title="确认删除"
         message="确定要删除这个岗位吗？此操作不可恢复。"
         onConfirm={confirmDelete}
-        onCancel={() => { setConfirmOpen(false); setDeleteJobId(null) }}
+        onCancel={() => {
+          setConfirmOpen(false)
+          setDeleteJobId(null)
+        }}
       />
 
       {/* Follow-up Dialog */}
       {followUpJob && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm modal-overlay" onClick={() => { setFollowUpJob(null); setFollowUpText('') }}>
-          <div className="modal-panel border rounded-2xl w-full max-w-sm mx-4 shadow-2xl shadow-black/40" onClick={(e) => e.stopPropagation()}>
-            <GlowCard style={{ background: 'transparent', border: 'none', boxShadow: 'none', padding: 0 }} className="rounded-[22px] w-full max-w-full min-w-0 flex flex-col">
-            <div className="bg-white/90 backdrop-blur-xl dark:bg-transparent dark:backdrop-filter-none rounded-[22px] w-full max-w-full min-w-0 flex flex-col">
-              <ModalHeader onClose={() => { setFollowUpJob(null); setFollowUpText('') }}>
-                <div className="flex flex-col items-center min-w-0">
-                  <h2 className="truncate text-base font-semibold leading-normal text-slate-950 dark:text-white">设置下一步行动</h2>
-                  <p className="truncate text-sm font-medium leading-normal text-slate-500 dark:text-white/55">{followUpJob.companyName} - {followUpJob.jobTitle}</p>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm modal-overlay"
+          onClick={() => {
+            setFollowUpJob(null)
+            setFollowUpText('')
+          }}
+        >
+          <div
+            className="modal-panel border rounded-2xl w-full max-w-sm mx-4 shadow-2xl shadow-black/40"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <GlowCard
+              style={{ background: 'transparent', border: 'none', boxShadow: 'none', padding: 0 }}
+              className="rounded-[22px] w-full max-w-full min-w-0 flex flex-col"
+            >
+              <div className="bg-white/90 backdrop-blur-xl dark:bg-transparent dark:backdrop-filter-none rounded-[22px] w-full max-w-full min-w-0 flex flex-col">
+                <ModalHeader
+                  onClose={() => {
+                    setFollowUpJob(null)
+                    setFollowUpText('')
+                  }}
+                >
+                  <div className="flex flex-col items-center min-w-0">
+                    <h2 className="truncate text-base font-semibold leading-normal text-slate-950 dark:text-white">
+                      设置下一步行动
+                    </h2>
+                    <p className="truncate text-sm font-medium leading-normal text-slate-500 dark:text-white/55">
+                      {followUpJob.companyName} - {followUpJob.jobTitle}
+                    </p>
+                  </div>
+                </ModalHeader>
+                <div className="p-5 pb-7">
+                  <textarea
+                    value={followUpText}
+                    onChange={(e) => setFollowUpText(e.target.value)}
+                    placeholder="例如：准备二面，复习系统设计"
+                    rows={3}
+                    className="w-full bg-white border border-slate-200 dark:bg-gray-950 dark:border-white/[0.06] rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-offer-muted focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 transition-colors resize-none mb-4"
+                    autoFocus
+                  />
+                  <div className="flex gap-3 justify-end">
+                    <button
+                      onClick={() => setFollowUpJob(null)}
+                      className="btn-secondary px-4 py-2 rounded-xl text-sm font-medium"
+                    >
+                      取消
+                    </button>
+                    <button
+                      onClick={saveFollowUp}
+                      className="btn-gradient px-4 py-2 rounded-xl text-sm font-medium text-white"
+                    >
+                      保存
+                    </button>
+                  </div>
                 </div>
-              </ModalHeader>
-              <div className="p-5 pb-7">
-              <textarea
-                value={followUpText}
-                onChange={(e) => setFollowUpText(e.target.value)}
-                placeholder="例如：准备二面，复习系统设计"
-                rows={3}
-                className="w-full bg-white border border-slate-200 dark:bg-gray-950 dark:border-white/[0.06] rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-offer-muted focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 transition-colors resize-none mb-4"
-                autoFocus
-              />
-              <div className="flex gap-3 justify-end">
-                <button onClick={() => setFollowUpJob(null)} className="btn-secondary px-4 py-2 rounded-xl text-sm font-medium">取消</button>
-                <button onClick={saveFollowUp} className="btn-gradient px-4 py-2 rounded-xl text-sm font-medium text-white">保存</button>
               </div>
-            </div>
-            </div>
-          </GlowCard>
+            </GlowCard>
+          </div>
         </div>
-      </div>
       )}
     </div>
   )
 }
 
 /* ---- Card Component (stable, outside Board) ---- */
-function Card({ job, resumeMap, menuOpen, onToggleMenu, onCloseMenu, onClick, onDragStart, onDragEnd, onEditFromMenu, onDelete, onMarkOffer, onMarkEnded, onFollowUp }) {
-  const days = calcDays(job.appliedDate)
+function Card({
+  job,
+  resumeMap,
+  menuOpen,
+  onToggleMenu,
+  onCloseMenu,
+  onClick,
+  onDragStart,
+  onDragEnd,
+  onEditFromMenu,
+  onDelete,
+  onMarkOffer,
+  onMarkEnded,
+  onFollowUp,
+}) {
   const resumeName = job.resumeId && resumeMap[job.resumeId]
   const actionBtnRef = useRef(null)
 
-  const priorityColor = job.priority === '高' ? 'text-red-700 dark:text-red-300 bg-red-500/[0.15] border-red-500/30'
-    : job.priority === '中' ? 'text-amber-700 dark:text-amber-300 bg-amber-500/[0.15] border-amber-500/30'
-    : 'text-gray-300 dark:text-white/65 bg-white/[0.04] border-white/10'
+  const priorityColor =
+    job.priority === '高'
+      ? 'text-red-700 dark:text-red-300 bg-red-500/[0.15] border-red-500/30'
+      : job.priority === '中'
+        ? 'text-amber-700 dark:text-amber-300 bg-amber-500/[0.15] border-amber-500/30'
+        : 'text-gray-300 dark:text-white/65 bg-white/[0.04] border-white/10'
 
   const borderColorMap = {
-    '感兴趣': 'border-l-blue-500/60',
-    '准备投递': 'border-l-amber-500/60',
-    '已投递': 'border-l-cyan-500/60',
+    感兴趣: 'border-l-blue-500/60',
+    准备投递: 'border-l-amber-500/60',
+    已投递: 'border-l-cyan-500/60',
     'OA / 笔试': 'border-l-orange-500/60',
-    '一面中': 'border-l-offer-primary/60',
-    '二面中': 'border-l-indigo-500/60',
-    '三面中': 'border-l-violet-500/60',
-    '终面中': 'border-l-pink-500/60',
-    'Offer': 'border-l-emerald-500/60',
-    '已结束': 'border-l-red-500/60',
+    一面中: 'border-l-offer-primary/60',
+    二面中: 'border-l-indigo-500/60',
+    三面中: 'border-l-violet-500/60',
+    终面中: 'border-l-pink-500/60',
+    Offer: 'border-l-emerald-500/60',
+    已结束: 'border-l-red-500/60',
   }
 
   return (
@@ -343,18 +467,39 @@ function Card({ job, resumeMap, menuOpen, onToggleMenu, onCloseMenu, onClick, on
         className="absolute top-3 right-3 w-6 h-6 rounded-lg flex items-center justify-center text-gray-500 dark:text-white/45 hover:text-white hover:bg-white/10 transition-all opacity-0 group-hover:opacity-100"
       >
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-          <circle cx="12" cy="5" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="12" cy="19" r="2" />
+          <circle cx="12" cy="5" r="2" />
+          <circle cx="12" cy="12" r="2" />
+          <circle cx="12" cy="19" r="2" />
         </svg>
       </button>
 
       {/* Portal-based Dropdown Menu — escapes card stacking context */}
-      <ActionMenuPortal open={menuOpen} anchorRef={actionBtnRef} onClose={onCloseMenu} menuWidth={180} menuHeight={190}>
-        <MenuItem icon="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" label="编辑" onClick={onEditFromMenu} />
+      <ActionMenuPortal
+        open={menuOpen}
+        anchorRef={actionBtnRef}
+        onClose={onCloseMenu}
+        menuWidth={180}
+        menuHeight={190}
+      >
+        <MenuItem
+          icon="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+          label="编辑"
+          onClick={onEditFromMenu}
+        />
         <MenuItem icon="M13 7l5 5m0 0l-5 5m5-5H6" label="设置 Follow-up" onClick={onFollowUp} />
-        <MenuItem icon="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" label="标记为 Offer" onClick={onMarkOffer} />
+        <MenuItem
+          icon="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+          label="标记为 Offer"
+          onClick={onMarkOffer}
+        />
         <MenuItem icon="M6 18L18 6M6 6l12 12" label="标记为已结束" onClick={onMarkEnded} />
         <div className="border-t border-slate-200 dark:border-white/10 my-1" />
-        <MenuItem icon="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" label="删除" onClick={onDelete} danger />
+        <MenuItem
+          icon="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+          label="删除"
+          onClick={onDelete}
+          danger
+        />
       </ActionMenuPortal>
 
       {/* Card Content */}
@@ -364,12 +509,20 @@ function Card({ job, resumeMap, menuOpen, onToggleMenu, onCloseMenu, onClick, on
       <div className="flex items-center gap-2 mt-2 flex-wrap">
         {job.city && <Tag>{job.city}</Tag>}
         {job.channel && <Tag>{job.channel}</Tag>}
-        {job.priority && <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${priorityColor}`}>{job.priority}</span>}
+        {job.priority && (
+          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${priorityColor}`}>
+            {job.priority}
+          </span>
+        )}
       </div>
 
       <div className="flex items-center justify-between mt-2 text-[11px] text-offer-muted">
         <span>{job.appliedDate ? `${calcDays(job.appliedDate)} 天` : '-'}</span>
-        {resumeName && <span className="truncate max-w-[80px]" title={resumeName.name}>{resumeName.name}</span>}
+        {resumeName && (
+          <span className="truncate max-w-[80px]" title={resumeName.name}>
+            {resumeName.name}
+          </span>
+        )}
       </div>
 
       {job.nextAction && (
@@ -380,13 +533,20 @@ function Card({ job, resumeMap, menuOpen, onToggleMenu, onCloseMenu, onClick, on
 }
 
 function Tag({ children }) {
-  return <span className="text-[10px] text-offer-muted bg-theme-hover px-1.5 py-0.5 rounded-full">{children}</span>
+  return (
+    <span className="text-[10px] text-offer-muted bg-theme-hover px-1.5 py-0.5 rounded-full">
+      {children}
+    </span>
+  )
 }
 
 function MenuItem({ icon, label, onClick, danger }) {
   return (
     <button
-      onClick={(e) => { e.stopPropagation(); onClick?.(e) }}
+      onClick={(e) => {
+        e.stopPropagation()
+        onClick?.(e)
+      }}
       className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg transition-colors ${danger ? 'text-red-500 hover:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/10' : 'text-slate-700 hover:bg-slate-100 dark:text-white/80 dark:hover:bg-white/10'}`}
     >
       <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

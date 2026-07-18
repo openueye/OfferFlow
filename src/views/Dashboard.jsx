@@ -2,10 +2,14 @@
 import { useApp } from '../store/AppContext'
 
 export default function Dashboard() {
-  const { jobs, tasks, reviews } = useApp()
+  const { jobs, tasks } = useApp()
 
   const activeJobs = jobs.filter((j) => !['已结束', 'Offer'].includes(j.status))
-  const interviewJobs = jobs.filter((j) => (j.interviewRounds || []).length > 0 || ['一面中', '二面中', '三面中', '终面中'].includes(j.status))
+  const interviewJobs = jobs.filter(
+    (j) =>
+      (j.interviewRounds || []).length > 0 ||
+      ['一面中', '二面中', '三面中', '终面中'].includes(j.status)
+  )
   const offerJobs = jobs.filter((j) => j.status === 'Offer')
   const weekJobs = jobs.filter((j) => {
     if (!j.appliedDate) return false
@@ -15,10 +19,6 @@ export default function Dashboard() {
     weekAgo.setDate(weekAgo.getDate() - 7)
     return d >= weekAgo
   })
-  const passRate = jobs.length > 0
-    ? Math.round((jobs.filter((j) => j.status !== '已结束').length / jobs.length) * 100) + '%'
-    : '0%'
-
   const stats = [
     { label: '进行中投递', value: activeJobs.length, color: 'from-offer-primary to-offer-accent' },
     { label: '待面试', value: interviewJobs.length, color: 'from-amber-500 to-orange-500' },
@@ -47,7 +47,9 @@ export default function Dashboard() {
         {stats.map((s, i) => (
           <div key={i} className="card-modern p-5 card-hover">
             <p className="text-gray-400 dark:text-white/45 text-sm mb-2">{s.label}</p>
-            <p className={`text-3xl font-bold bg-gradient-to-r ${s.color} bg-clip-text text-transparent`}>
+            <p
+              className={`text-3xl font-bold bg-gradient-to-r ${s.color} bg-clip-text text-transparent`}
+            >
               {s.value}
             </p>
           </div>
@@ -60,17 +62,22 @@ export default function Dashboard() {
         <div className="card-modern p-5">
           <h2 className="text-base font-semibold text-white mb-4">最近动态</h2>
           <div className="space-y-3">
-            {timelineEvents.length > 0 ? timelineEvents.map((e, i) => (
-              <div key={i} className="flex items-start gap-3 pb-3 border-b border-white/10 last:border-0">
-                <div className="w-2 h-2 rounded-full bg-offer-primary mt-2 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-white truncate">
-                    <span className="text-offer-accent">{e.company}</span> {e.action}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-white/45 mt-0.5">{e.date}</p>
+            {timelineEvents.length > 0 ? (
+              timelineEvents.map((e, i) => (
+                <div
+                  key={i}
+                  className="flex items-start gap-3 pb-3 border-b border-white/10 last:border-0"
+                >
+                  <div className="w-2 h-2 rounded-full bg-offer-primary mt-2 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-white truncate">
+                      <span className="text-offer-accent">{e.company}</span> {e.action}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-white/45 mt-0.5">{e.date}</p>
+                  </div>
                 </div>
-              </div>
-            )) : (
+              ))
+            ) : (
               <p className="text-sm text-gray-500 dark:text-white/45 py-4 text-center">暂无动态</p>
             )}
           </div>
@@ -80,20 +87,45 @@ export default function Dashboard() {
         <div className="card-modern p-5">
           <h2 className="text-base font-semibold text-white mb-4">待办事项</h2>
           <div className="space-y-3">
-            {upcomingTasks.length > 0 ? upcomingTasks.map((t) => (
-              <div key={t.id} className="flex items-start gap-3 pb-3 border-b border-white/10 last:border-0">
-                <div className={`w-2 h-2 rounded-full mt-2 shrink-0 ${
-                  t.type === '面试' ? 'bg-green-500' : t.type === 'OA / 笔试' || t.type === 'Deadline' ? 'bg-amber-500' : t.type === 'Follow-up' ? 'bg-teal-500' : 'bg-blue-500'
-                }`} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-white truncate">{t.title}</p>
-                  <p className="text-xs text-gray-500 dark:text-white/45 mt-0.5">{t.date} {t.startTime || ''}</p>
+            {upcomingTasks.length > 0 ? (
+              upcomingTasks.map((t) => (
+                <div
+                  key={t.id}
+                  className="flex items-start gap-3 pb-3 border-b border-white/10 last:border-0"
+                >
+                  <div
+                    className={`w-2 h-2 rounded-full mt-2 shrink-0 ${
+                      t.type === '面试'
+                        ? 'bg-green-500'
+                        : t.type === 'OA / 笔试' || t.type === 'Deadline'
+                          ? 'bg-amber-500'
+                          : t.type === 'Follow-up'
+                            ? 'bg-teal-500'
+                            : 'bg-blue-500'
+                    }`}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-white truncate">{t.title}</p>
+                    <p className="text-xs text-gray-500 dark:text-white/45 mt-0.5">
+                      {t.date} {t.startTime || ''}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )) : (
+              ))
+            ) : (
               <div className="flex flex-col items-center justify-center py-8 text-gray-500 dark:text-white/45">
-                <svg className="w-12 h-12 mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <svg
+                  className="w-12 h-12 mb-3 opacity-40"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
                 </svg>
                 <p className="text-sm">暂无待办事项</p>
               </div>
