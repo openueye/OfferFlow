@@ -3,17 +3,25 @@
   "private": true,
   "version": "2.0.0",
   "type": "module",
+  "engines": {
+    "node": "22.x",
+    "npm": "10.x"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "test": "node --test",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier . --write",
+    "prepare": "husky",
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
-    "db:sqlite": "node -e \"require('fs').copyFileSync('prisma/schema.sqlite.prisma','prisma/schema.prisma');require('fs').copyFileSync('.env.sqlite','.env')\" && prisma generate && echo Switched to SQLite (local dev)",
-    "db:pg": "node -e \"require('fs').copyFileSync('prisma/schema.pg.prisma','prisma/schema.prisma');require('fs').copyFileSync('.env.pg','.env')\" && prisma generate && echo Switched to PostgreSQL (Vercel deploy)"
+    "db:sqlite": "node scripts/switch-db.mjs sqlite && prisma generate && echo \"Switched to SQLite (local dev)\"",
+    "db:pg": "node scripts/switch-db.mjs pg && prisma generate && echo \"Switched to PostgreSQL (Vercel deploy)\""
   },
   "dependencies": {
     "@prisma/client": "^6.5.0",
@@ -34,7 +42,10 @@
     "@types/react-dom": "^19.2.3",
     "eslint": "^10.3.0",
     "globals": "^17.6.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.6",
     "playwright": "^1.60.0",
+    "prettier": "^3.6.2",
     "prisma": "^6.5.0"
   }
 }

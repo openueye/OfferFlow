@@ -9,25 +9,30 @@
 ## 核心功能
 
 ### 看板管理（Board）
+
 - 10 列 Kanban 看板，覆盖求职全流程：收藏 → 已投递 → 笔试 → 一面 → 二面 → ... → 已offer → 已入职
 - HTML5 原生拖拽，拖拽即可变更岗位状态
 - 每个岗位卡片展示公司、职位、优先级、近期动态
 
 ### 岗位库（Positions）
+
 - 表格视图管理所有投递记录，支持按状态/公司/城市筛选
 - 快速编辑岗位信息：JD 链接、薪资范围、工作模式、联系人
 - 内嵌时间线，记录每个岗位的关键节点
 
 ### 简历管理（Resumes）
+
 - 多版本简历管理，标记默认简历
 - 本地上传文件（IndexedDB 持久化），刷新不会丢失
 - 简历预览、版本备注、投递关联
 
 ### 日程待办（Schedule）
+
 - 任务按类型分组：面试、笔试、投递、推进、会议、其他
 - 标记完成、设置优先级、关联岗位
 
 ### 面试复盘（Interview）
+
 - 8 维度评分系统（表达、岗位理解、项目熟悉度、业务思考、技术能力、临场状态、反问质量、整体表现）
 - **AI 智能分析**（核心功能）：
   - 上传面试录音整理（.docx），AI 自动评分 + 分析优势不足
@@ -37,6 +42,7 @@
   - 支持 DeepSeek / OpenAI / 硅基流动 / 通义千问 等任意 OpenAI 兼容 API
 
 ### 数据洞察（Insights）
+
 - 投递漏斗图、面试评分趋势、岗位状态分布
 - 薄弱项统计、拒绝原因分析
 - 按时间范围筛选，跟踪求职进展
@@ -47,7 +53,7 @@
 
 ### 前置条件
 
-- **Node.js 18+**（[下载 LTS 版本](https://nodejs.org/)）
+- **Node.js 22.x**（仓库已提供 `.nvmrc`，推荐直接执行 `nvm use`）
 - 一个 **LLM API Key**（可选，用于 AI 面试分析，如 [DeepSeek](https://platform.deepseek.com/)）
 
 ### Windows 一键部署
@@ -66,37 +72,56 @@
 
 ```bash
 # 1. 克隆
-git clone https://github.com/xuuuu-cpu/offerFlow-llm-feature.git
-cd offerFlow-llm-feature
+git clone https://github.com/openueye/OfferFlow.git
+cd OfferFlow
 
-# 2. 安装依赖
+# 2. 使用仓库约定的 Node 版本
+# 如果本机使用 nvm，直接执行：
+nvm use
+# 如果没有 nvm，请确认当前 Node.js 版本为 22.x
+
+# 3. 安装依赖
 npm install
 
-# 3. 切换到 SQLite 模式
+# 4. 切换到 SQLite 模式
+# 会同步 schema，并在首次创建 .env；如果 .env 已存在，会保留你的 JWT / LLM 配置
 npm run db:sqlite
-
-# 4. 配置环境变量
-cp .env.example .env          # macOS/Linux
-copy .env.example .env         # Windows
 
 # 5. 编辑 .env，修改 JWT_SECRET 为随机字符串
 
-# 6. 启动
+# 6. 可选：先做一次本地校验
+npm run lint
+npm run build
+
+# 7. 启动
 npm run dev
 ```
 
 浏览器打开 http://localhost:3000 即可使用。
 
+### 本地开发补充
+
+```bash
+# 格式化
+npm run format
+
+# 自动修复部分 lint 问题
+npm run lint:fix
+```
+
+- 仓库已配置 `husky` + `lint-staged`，提交前会自动运行格式化和 `npm run lint`
+- 如果要切换到 PostgreSQL，先复制 `.env.pg.example` 为 `.env.pg`，填好连接串后再执行 `npm run db:pg`
+
 ### AI 面试分析配置
 
 在「设置 → AI 模型配置」中填入你的 LLM API Key：
 
-| 提供商 | Base URL | 默认模型 |
-|--------|----------|----------|
-| DeepSeek | `https://api.deepseek.com` | `deepseek-chat` |
-| OpenAI | `https://api.openai.com/v1` | `gpt-4o` |
-| 硅基流动 | `https://api.siliconflow.cn/v1` | `Qwen/Qwen2.5-7B-Instruct` |
-| 通义千问 | `https://dashscope.aliyuncs.com/compatible-mode/v1` | `qwen-plus` |
+| 提供商   | Base URL                                            | 默认模型                   |
+| -------- | --------------------------------------------------- | -------------------------- |
+| DeepSeek | `https://api.deepseek.com`                          | `deepseek-chat`            |
+| OpenAI   | `https://api.openai.com/v1`                         | `gpt-4o`                   |
+| 硅基流动 | `https://api.siliconflow.cn/v1`                     | `Qwen/Qwen2.5-7B-Instruct` |
+| 通义千问 | `https://dashscope.aliyuncs.com/compatible-mode/v1` | `qwen-plus`                |
 
 > 配置保存在浏览器本地存储（localStorage），不会上传到任何服务器。设置页面的配置优先级高于环境变量。
 
@@ -128,30 +153,38 @@ npm run dev
 ## 常见问题
 
 ### 启动后页面空白或无法访问？
+
 确认 `npm run dev` 正常启动，访问 http://localhost:3000。如果端口被占用，Next.js 会自动尝试下一个可用端口。
 
 ### 注册失败或登录不了？
+
 确保 `.env` 文件中的 `JWT_SECRET` 已设置（任意随机字符串均可），且已执行 `npm run db:sqlite` 创建数据库。
 
 ### AI 分析报错 "LLM_API_KEY 未配置"？
+
 进入「设置 → AI 模型配置」，填入你的 API Key 后保存，然后重新尝试分析。
 
 ### AI 分析超时或返回格式异常？
+
 - 检查 API Key 是否有效，点击「测试连接」验证
 - 某些免费模型的上下文窗口较小，长文档可能被截断
 - 确认 Base URL 结尾没有多余的 `/`
 
 ### 数据存在哪里？
+
 本地运行时数据存储在项目根目录的 `prisma/dev.db`（SQLite 文件），完全由你掌控。API Key 存储在浏览器 localStorage 中。
 
 ### 如何切换数据库？
+
 - 本地开发（推荐）：`npm run db:sqlite` → SQLite 零配置
-- 生产部署：`npm run db:pg` → PostgreSQL（需自行搭建或使用 Neon）
+- 生产部署：`npm run db:pg` → PostgreSQL（需自行搭建或使用 Neon，先准备 `.env.pg`）
 
 ### 可以在手机上用吗？
+
 目前未针对移动端做完整适配，但核心功能在手机浏览器上基本可用。
 
 ### 多人如何共享数据？
+
 本项目为单用户设计，数据按用户 ID 隔离。如需多人共享，可自行搭建 PostgreSQL 部署到服务器。
 
 ---
@@ -159,6 +192,7 @@ npm run dev
 ## 隐私与安全说明
 
 ### API Key 安全
+
 - **你的 API Key 不会被上传到任何第三方服务器**
 - 通过设置页面配置时：Key 保存在浏览器 localStorage，仅在你自己的浏览器中可用
 - 调用 AI 分析时：Key 从 localStorage 读取，经由你的本地网络直接发送到 LLM 提供商
@@ -166,6 +200,7 @@ npm run dev
 - 所有 AI 分析 API 路由已做 JWT 认证保护
 
 ### 数据安全
+
 - **本地运行模式下，所有数据存储在你自己电脑的 SQLite 数据库中**
 - 数据库文件 `prisma/dev.db` 不出现在任何网络请求中
 - 用户密码使用 bcrypt 哈希存储，不存明文
@@ -173,6 +208,7 @@ npm run dev
 - 退出登录时自动清除本地缓存的业务数据
 
 ### 建议
+
 - 定期备份 `prisma/dev.db` 文件
 - 不要将 `.env` 文件提交到 Git 仓库（已通过 `.gitignore` 保护）
 - 使用强密码注册账号
@@ -202,6 +238,7 @@ npm run dev
 ### 开发建议
 
 提交信息格式参考 [Conventional Commits](https://www.conventionalcommits.org/)：
+
 - `feat:` 新功能
 - `fix:` Bug 修复
 - `docs:` 文档更新
