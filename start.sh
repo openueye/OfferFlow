@@ -26,9 +26,6 @@ if [[ "$NODE_MAJOR" != "22" ]]; then
   exit 1
 fi
 
-echo "[OfferFlow] 正在准备本地 SQLite 配置..."
-node scripts/switch-db.mjs sqlite
-
 if [[ ! -d node_modules ]] ||
   [[ ! -f node_modules/.package-lock.json ]] ||
   [[ package.json -nt node_modules/.package-lock.json ]] ||
@@ -37,11 +34,13 @@ if [[ ! -d node_modules ]] ||
   npm ci
 else
   echo "[OfferFlow] 依赖已是最新，跳过安装。"
-  npm run db:generate
 fi
 
+echo "[OfferFlow] 正在准备本地 SQLite 配置..."
+npm run db:sqlite
+
 echo "[OfferFlow] 正在同步本地数据库..."
-npm run db:push -- --skip-generate
+npm run db:push:sqlite -- --skip-generate
 
 echo "[OfferFlow] 启动开发服务器：http://localhost:3000"
 if (( $# > 0 )); then

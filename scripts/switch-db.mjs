@@ -4,11 +4,6 @@ import path from 'node:path'
 const mode = process.argv[2]
 const rootDir = process.cwd()
 
-const schemaMap = {
-  sqlite: 'prisma/schema.sqlite.prisma',
-  pg: 'prisma/schema.pg.prisma',
-}
-
 const envSourceMap = {
   sqlite: '.env.sqlite',
   pg: '.env.pg',
@@ -40,18 +35,15 @@ function writeEnvFile(filePath, env) {
   fs.writeFileSync(filePath, `${content}\n`)
 }
 
-if (!schemaMap[mode]) {
+if (!envSourceMap[mode]) {
   console.error('Usage: node scripts/switch-db.mjs <sqlite|pg>')
   process.exit(1)
 }
 
 if (mode === 'sqlite') {
-  const schemaSource = path.join(rootDir, schemaMap.sqlite)
-  const schemaTarget = path.join(rootDir, 'prisma/schema.prisma')
   const templateEnv = readEnvFile(path.join(rootDir, envSourceMap.sqlite))
   const currentEnv = readEnvFile(path.join(rootDir, '.env'))
 
-  fs.copyFileSync(schemaSource, schemaTarget)
   writeEnvFile(path.join(rootDir, '.env'), {
     ...templateEnv,
     ...currentEnv,
@@ -59,8 +51,6 @@ if (mode === 'sqlite') {
   })
 } else {
   const pgEnvPath = path.join(rootDir, envSourceMap.pg)
-  const schemaSource = path.join(rootDir, schemaMap.pg)
-  const schemaTarget = path.join(rootDir, 'prisma/schema.prisma')
 
   if (!fs.existsSync(pgEnvPath)) {
     console.error(
@@ -69,6 +59,5 @@ if (mode === 'sqlite') {
     process.exit(1)
   }
 
-  fs.copyFileSync(schemaSource, schemaTarget)
   fs.copyFileSync(pgEnvPath, path.join(rootDir, '.env'))
 }
