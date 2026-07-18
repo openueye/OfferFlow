@@ -20,9 +20,6 @@ dist
 # Local application data
 prisma/dev.db
 prisma/schema.prisma
-public/uploads/reviews/*
-!public/uploads/reviews/.gitkeep
-
 
 # Editor directories and files
 .vscode/*
