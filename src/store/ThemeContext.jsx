@@ -4,8 +4,7 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 
 const ThemeContext = createContext(null)
 
-function getInitialTheme() {
-  if (typeof window === 'undefined') return 'dark'
+function getPreferredTheme() {
   try {
     const saved = localStorage.getItem('app-theme')
     if (saved === 'light' || saved === 'dark') return saved
@@ -18,9 +17,16 @@ function getInitialTheme() {
 }
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(getInitialTheme)
+  const [theme, setTheme] = useState('dark')
+  const [hydrated, setHydrated] = useState(false)
 
   useEffect(() => {
+    setTheme(getPreferredTheme())
+    setHydrated(true)
+  }, [])
+
+  useEffect(() => {
+    if (!hydrated) return
     try {
       localStorage.setItem('app-theme', theme)
     } catch {
@@ -32,7 +38,7 @@ export function ThemeProvider({ children }) {
     } else {
       root.classList.remove('dark')
     }
-  }, [theme])
+  }, [theme, hydrated])
 
   const toggleTheme = useCallback(() => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
