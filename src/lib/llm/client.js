@@ -1,5 +1,9 @@
 import { getLLMConfig } from './config.js'
 
+export function buildChatCompletionsUrl(baseUrl) {
+  return new URL('chat/completions', `${baseUrl.replace(/\/+$/, '')}/`).href
+}
+
 export class LLMError extends Error {
   constructor(message, { status, retryable = false } = {}) {
     super(message)
@@ -19,25 +23,30 @@ export class LLMError extends Error {
  * @param {number} [options.timeoutMs=60000] - 超时毫秒
  * @returns {Promise<{ content: string, model: string, usage: object }>}
  */
-export async function callLLM({ systemPrompt, userPrompt, llmConfig, timeoutMs = 60000 }) {
+export async function callLLM({
+  systemPrompt,
+  userPrompt,
+  llmConfig,
+  timeoutMs = 60000,
+  fetchImpl = fetch,
+}) {
   const config = getLLMConfig(llmConfig)
 
   if (!config.apiKey) {
-    throw new LLMError(
-      'LLM_API_KEY 未配置。请在「设置 → AI 模型配置」中填入你的 API Key。',
-      { retryable: false }
-    )
+    throw new LLMError('LLM_API_KEY 未配置。请在「设置 → AI 模型配置」中填入你的 API Key。', {
+      retryable: false,
+    })
   }
 
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), timeoutMs)
 
   try {
-    const response = await fetch(`${config.baseUrl}/chat/completions`, {
+    const response = await fetchImpl(buildChatCompletionsUrl(config.baseUrl), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${config.apiKey}`,
+        Authorization: `Bearer ${config.apiKey}`,
       },
       body: JSON.stringify({
         model: config.model,
@@ -52,10 +61,10 @@ export async function callLLM({ systemPrompt, userPrompt, llmConfig, timeoutMs =
 
     if (!response.ok) {
       const retryable = response.status >= 500 || response.status === 429
-      throw new LLMError(
-        `LLM API 错误: ${response.status} ${response.statusText}`,
-        { status: response.status, retryable }
-      )
+      throw new LLMError(`LLM API 错误: ${response.status} ${response.statusText}`, {
+        status: response.status,
+        retryable,
+      })
     }
 
     const data = await response.json()
