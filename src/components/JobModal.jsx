@@ -95,6 +95,11 @@ export default function JobModal({ open, job, onClose, initialStatus }) {
   useEffect(() => {
     if (open) {
       const base = job ? { ...emptyForm, ...job } : { ...emptyForm }
+      // 数据库里可空字段（如 resumeId）取值为 null 时，回退到表单默认值，
+      // 避免 <select>/<input> 收到 null 触发 "value prop should not be null" 警告
+      for (const key of Object.keys(emptyForm)) {
+        if (base[key] === null || base[key] === undefined) base[key] = emptyForm[key]
+      }
       if (!job && initialStatus) base.status = initialStatus
       setForm(base)
     }
