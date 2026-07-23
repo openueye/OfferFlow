@@ -150,7 +150,10 @@ function requestPinnedPage(resolved) {
   })
 }
 
-export function createPinnedFetch(resolved, { request = requestPinnedUrl } = {}) {
+export function createPinnedFetch(
+  resolved,
+  { request = requestPinnedUrl, timeoutMs = REQUEST_TIMEOUT_MS } = {}
+) {
   return async function pinnedFetch(input, init = {}) {
     const requestedUrl = new URL(
       typeof input === 'string' || input instanceof URL ? input : input.url
@@ -164,6 +167,7 @@ export function createPinnedFetch(resolved, { request = requestPinnedUrl } = {})
       headers: Object.fromEntries(new Headers(init.headers).entries()),
       body: init.body,
       signal: init.signal,
+      timeoutMs,
     })
     const responseHeaders = new Headers()
     for (const [name, value] of Object.entries(response.headers)) {

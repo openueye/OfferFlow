@@ -11,6 +11,12 @@ import { buildChatCompletionsUrl, callLLMWithRetry } from '@/lib/llm/client'
 import { buildJobImportPrompt } from '@/lib/llm/prompts'
 
 export const runtime = 'nodejs'
+// Vercel Hobby 计划（Fluid Compute 默认开启）函数最长可运行 300s，这里留出余量
+export const maxDuration = 200
+
+// 单次 LLM 请求的超时；callLLMWithRetry 最多重试 1 次，最坏情况约为该值的 2 倍，
+// 仍在 maxDuration 之内
+const LLM_TIMEOUT_MS = 90_000
 
 function errorResponse(error, code, status, extra = {}) {
   return NextResponse.json({ error, code, ...extra }, { status })
@@ -110,10 +116,15 @@ export async function POST(request) {
       systemPrompt: prompt.system,
       userPrompt: prompt.user,
       llmConfig,
-      timeoutMs: 45_000,
-      fetchImpl: resolvedLlmEndpoint ? createPinnedFetch(resolvedLlmEndpoint) : undefined,
+      timeoutMs: LLM_TIMEOUT_MS,
+      fetchImpl: resolvedLlmEndpoint
+        ? createPinnedFetch(resolvedLlmEndpoint, { timeoutMs: LLM_TIMEOUT_MS })
+        : undefined,
     })
-  } catch {
+  } catch (error) {
+    if (error?.retryable) {
+      return errorResponse('AI 响应超时或暂时不可用，请稍后重试', 'LLM_TIMEOUT', 504)
+    }
     return errorResponse('AI 分析失败，请检查模型配置后重试', 'LLM_ERROR', 502)
   }
 
