@@ -77,9 +77,3 @@ export async function deleteResumeFile(resumeId) {
     }
   })
 }
-
-export async function createObjectUrl(resumeId) {
-  const blob = await getResumeFile(resumeId)
-  if (!blob) return null
-  return URL.createObjectURL(blob)
-}

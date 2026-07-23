@@ -32,4 +32,4 @@ export function cookieOptions(maxAge = MAX_AGE) {
   }
 }
 
-export { COOKIE_NAME, MAX_AGE }
+export { COOKIE_NAME }

@@ -1,12 +1,53 @@
 import { getLLMConfig } from './config.js'
 
+export function buildChatCompletionsUrl(baseUrl) {
+  return new URL('chat/completions', `${baseUrl.replace(/\/+$/, '')}/`).href
+}
+
 export class LLMError extends Error {
-  constructor(message, { status, retryable = false } = {}) {
+  constructor(message, { status, code = 'UNKNOWN', retryable = false } = {}) {
     super(message)
     this.name = 'LLMError'
     this.status = status
+    this.code = code
     this.retryable = retryable
   }
+}
+
+export function getLLMFailure(error) {
+  if (error instanceof LLMError) {
+    if (error.code === 'TIMEOUT') {
+      return {
+        error: 'AI 响应超时，请稍后重试或换用响应更快的模型',
+        code: 'LLM_TIMEOUT',
+        status: 504,
+      }
+    }
+    if (error.status === 429) {
+      return {
+        error: 'AI 服务请求过于频繁（429），请稍后重试',
+        code: 'LLM_RATE_LIMIT',
+        status: 429,
+      }
+    }
+    if (error.status >= 500) {
+      return {
+        error: `AI 服务端暂时异常（${error.status}），请稍后重试`,
+        code: 'LLM_UPSTREAM_ERROR',
+        status: 502,
+      }
+    }
+    if (error.code === 'NETWORK') {
+      return {
+        error: '无法连接 AI 服务，请检查 Base URL、网络或代理设置',
+        code: 'LLM_NETWORK',
+        status: 502,
+      }
+    }
+    return { error: error.message, code: error.code, status: error.status || 502 }
+  }
+
+  return { error: 'AI 服务调用失败，请稍后重试', code: 'LLM_UNKNOWN', status: 502 }
 }
 
 /**
@@ -19,25 +60,31 @@ export class LLMError extends Error {
  * @param {number} [options.timeoutMs=60000] - 超时毫秒
  * @returns {Promise<{ content: string, model: string, usage: object }>}
  */
-export async function callLLM({ systemPrompt, userPrompt, llmConfig, timeoutMs = 60000 }) {
+export async function callLLM({
+  systemPrompt,
+  userPrompt,
+  llmConfig,
+  timeoutMs = 60000,
+  fetchImpl = fetch,
+}) {
   const config = getLLMConfig(llmConfig)
 
   if (!config.apiKey) {
-    throw new LLMError(
-      'LLM_API_KEY 未配置。请在「设置 → AI 模型配置」中填入你的 API Key。',
-      { retryable: false }
-    )
+    throw new LLMError('LLM_API_KEY 未配置。请在「设置 → AI 模型配置」中填入你的 API Key。', {
+      code: 'MISSING_API_KEY',
+      retryable: false,
+    })
   }
 
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), timeoutMs)
 
   try {
-    const response = await fetch(`${config.baseUrl}/chat/completions`, {
+    const response = await fetchImpl(buildChatCompletionsUrl(config.baseUrl), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${config.apiKey}`,
+        Authorization: `Bearer ${config.apiKey}`,
       },
       body: JSON.stringify({
         model: config.model,
@@ -52,17 +99,18 @@ export async function callLLM({ systemPrompt, userPrompt, llmConfig, timeoutMs =
 
     if (!response.ok) {
       const retryable = response.status >= 500 || response.status === 429
-      throw new LLMError(
-        `LLM API 错误: ${response.status} ${response.statusText}`,
-        { status: response.status, retryable }
-      )
+      throw new LLMError(`LLM API 错误: ${response.status} ${response.statusText}`, {
+        status: response.status,
+        code: `HTTP_${response.status}`,
+        retryable,
+      })
     }
 
     const data = await response.json()
     const content = data.choices?.[0]?.message?.content
 
     if (!content) {
-      throw new LLMError('LLM 返回内容为空', { retryable: false })
+      throw new LLMError('LLM 返回内容为空', { code: 'EMPTY_RESPONSE', retryable: false })
     }
 
     return {
@@ -71,11 +119,11 @@ export async function callLLM({ systemPrompt, userPrompt, llmConfig, timeoutMs =
       usage: data.usage || {},
     }
   } catch (err) {
-    if (err.name === 'AbortError') {
-      throw new LLMError('LLM 请求超时', { retryable: true })
+    if (err.name === 'AbortError' || err.code === 'ABORT_ERR') {
+      throw new LLMError('LLM 请求超时', { code: 'TIMEOUT', retryable: true })
     }
     if (err instanceof LLMError) throw err
-    throw new LLMError(`LLM 请求失败: ${err.message}`, { retryable: true })
+    throw new LLMError(`LLM 请求失败: ${err.message}`, { code: 'NETWORK', retryable: true })
   } finally {
     clearTimeout(timeout)
   }

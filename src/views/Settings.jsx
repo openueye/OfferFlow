@@ -7,13 +7,22 @@ const LLM_STORAGE_KEY = 'offerflow_llm_config'
 const LLM_PRESETS = {
   deepseek: { label: 'DeepSeek', baseUrl: 'https://api.deepseek.com', model: 'deepseek-chat' },
   openai: { label: 'OpenAI', baseUrl: 'https://api.openai.com/v1', model: 'gpt-4o' },
-  siliconflow: { label: '硅基流动', baseUrl: 'https://api.siliconflow.cn/v1', model: 'Qwen/Qwen2.5-7B-Instruct' },
-  qwen: { label: '通义千问', baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', model: 'qwen-plus' },
+  siliconflow: {
+    label: '硅基流动',
+    baseUrl: 'https://api.siliconflow.cn/v1',
+    model: 'Qwen/Qwen2.5-7B-Instruct',
+  },
+  qwen: {
+    label: '通义千问',
+    baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+    model: 'qwen-plus',
+  },
   custom: { label: '自定义', baseUrl: '', model: '' },
 }
 
 function loadLlmConfig() {
-  if (typeof window === 'undefined') return { llmProvider: 'deepseek', llmApiKey: '', llmBaseUrl: '', llmModel: '' }
+  if (typeof window === 'undefined')
+    return { llmProvider: 'deepseek', llmApiKey: '', llmBaseUrl: '', llmModel: '' }
   try {
     const raw = localStorage.getItem(LLM_STORAGE_KEY)
     if (raw) {
@@ -26,14 +35,18 @@ function loadLlmConfig() {
       }
       return parsed
     }
-  } catch {}
+  } catch {
+    // Invalid or unavailable local storage falls back to the default preset.
+  }
   return { llmProvider: 'deepseek', llmApiKey: '', llmBaseUrl: '', llmModel: '' }
 }
 
 function saveLlmConfig(config) {
   try {
     localStorage.setItem(LLM_STORAGE_KEY, JSON.stringify(config))
-  } catch {}
+  } catch {
+    // Settings still work for the current session when persistence is unavailable.
+  }
 }
 
 export default function Settings() {
@@ -48,7 +61,9 @@ export default function Settings() {
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState(null)
 
-  useEffect(() => { setForm({ ...settings }) }, [settings])
+  useEffect(() => {
+    setForm({ ...settings })
+  }, [settings])
 
   const handleSave = () => {
     setSettings(form)
@@ -84,19 +99,28 @@ export default function Settings() {
     setTesting(true)
     setTestResult(null)
     try {
-      const baseUrl = llmForm.llmBaseUrl.replace(/\/+$/, '')
-      const res = await fetch(`${baseUrl}/models`, {
+      const res = await fetch('/api/ai/test-connection', {
+        method: 'POST',
         headers: {
-          'Authorization': `Bearer ${llmForm.llmApiKey}`,
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          llmConfig: {
+            provider: llmForm.llmProvider,
+            apiKey: llmForm.llmApiKey,
+            baseUrl: llmForm.llmBaseUrl,
+            model: llmForm.llmModel,
+          },
+        }),
       })
+      const data = await res.json().catch(() => ({}))
       if (res.ok) {
-        const data = await res.json()
-        setTestResult({ ok: true, msg: `连接成功！可用模型 ${data.data?.length || '未知'} 个` })
-      } else if (res.status === 401) {
-        setTestResult({ ok: false, msg: 'API Key 无效（401）' })
+        setTestResult({
+          ok: true,
+          msg: `连接成功！实际分析请求可使用模型 ${data.model || llmForm.llmModel}`,
+        })
       } else {
-        setTestResult({ ok: false, msg: `连接失败（${res.status}）` })
+        setTestResult({ ok: false, msg: data.error || `连接失败（${res.status}）` })
       }
     } catch (err) {
       setTestResult({ ok: false, msg: `网络错误: ${err.message}` })
@@ -170,7 +194,9 @@ export default function Settings() {
                   onClick={() => setForm((prev) => ({ ...prev, [t.key]: !prev[t.key] }))}
                   className={`w-11 h-6 rounded-full transition-all relative ${form[t.key] ? 'bg-offer-primary' : 'bg-slate-200 dark:bg-white/10'}`}
                 >
-                  <div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-all ${form[t.key] ? 'left-6' : 'left-1'}`} />
+                  <div
+                    className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-all ${form[t.key] ? 'left-6' : 'left-1'}`}
+                  />
                 </button>
               </div>
             ))}
@@ -180,7 +206,9 @@ export default function Settings() {
         {/* AI 模型配置 */}
         <div className="card-modern p-5">
           <h2 className="text-white font-semibold mb-4">AI 模型配置</h2>
-          <p className="text-xs text-offer-muted mb-4">配置你的 AI 面试分析模型。支持任何 OpenAI 兼容的 API。配置后会自动生效。</p>
+          <p className="text-xs text-offer-muted mb-4">
+            配置你的 AI 面试分析模型。支持任何 OpenAI 兼容的 API。配置后会自动生效。
+          </p>
 
           <div className="space-y-4">
             {/* Provider */}
@@ -192,7 +220,9 @@ export default function Settings() {
                 className="min-h-[40px] w-full rounded-xl border border-theme-border bg-theme-card px-4 py-2.5 text-sm text-theme-text outline-none transition-all duration-200 focus:border-purple-400/70 focus:ring-2 focus:ring-purple-500/20"
               >
                 {Object.entries(LLM_PRESETS).map(([key, v]) => (
-                  <option key={key} value={key}>{v.label}</option>
+                  <option key={key} value={key}>
+                    {v.label}
+                  </option>
                 ))}
               </select>
             </div>
@@ -233,10 +263,15 @@ export default function Settings() {
 
             {/* Actions */}
             <div className="flex items-center gap-3 flex-wrap">
-              <button onClick={handleLlmSave} className="btn-gradient px-6 py-2.5 rounded-xl text-white font-medium text-sm">
+              <button
+                onClick={handleLlmSave}
+                className="btn-gradient px-6 py-2.5 rounded-xl text-white font-medium text-sm"
+              >
                 保存配置
               </button>
-              <button onClick={handleTestConnection} disabled={testing || !llmForm.llmApiKey}
+              <button
+                onClick={handleTestConnection}
+                disabled={testing || !llmForm.llmApiKey}
                 className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all border ${
                   testing || !llmForm.llmApiKey
                     ? 'border-theme-border text-offer-muted cursor-not-allowed opacity-50'
@@ -250,21 +285,28 @@ export default function Settings() {
 
             {/* Test result */}
             {testResult && (
-              <div className={`text-sm px-3 py-2 rounded-lg ${testResult.ok ? 'bg-emerald-500/10 text-emerald-300' : 'bg-red-500/10 text-red-300'}`}>
+              <div
+                className={`text-sm px-3 py-2 rounded-lg ${testResult.ok ? 'bg-emerald-500/10 text-emerald-300' : 'bg-red-500/10 text-red-300'}`}
+              >
                 {testResult.msg}
               </div>
             )}
 
             {/* Models hint for custom provider */}
             {llmForm.llmProvider === 'custom' && (
-              <p className="text-xs text-offer-muted">选择「自定义」后请自行填写 API 地址和模型名称。</p>
+              <p className="text-xs text-offer-muted">
+                选择「自定义」后请自行填写 API 地址和模型名称。
+              </p>
             )}
           </div>
         </div>
 
         {/* Save */}
         <div className="flex items-center gap-3">
-          <button onClick={handleSave} className="btn-gradient px-6 py-2.5 rounded-xl text-white font-medium text-sm">
+          <button
+            onClick={handleSave}
+            className="btn-gradient px-6 py-2.5 rounded-xl text-white font-medium text-sm"
+          >
             保存设置
           </button>
           {saved && <span className="text-sm text-emerald-400">设置已保存</span>}

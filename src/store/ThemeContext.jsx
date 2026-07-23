@@ -4,38 +4,47 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 
 const ThemeContext = createContext(null)
 
-function getInitialTheme() {
-  if (typeof window === 'undefined') return 'dark'
+function getPreferredTheme() {
   try {
     const saved = localStorage.getItem('app-theme')
     if (saved === 'light' || saved === 'dark') return saved
-  } catch {}
-  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) return 'light'
+  } catch {
+    // localStorage may be unavailable; fall back to the system preference.
+  }
+  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches)
+    return 'light'
   return 'dark'
 }
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(getInitialTheme)
+  const [theme, setTheme] = useState('dark')
+  const [hydrated, setHydrated] = useState(false)
 
   useEffect(() => {
-    try { localStorage.setItem('app-theme', theme) } catch {}
+    setTheme(getPreferredTheme())
+    setHydrated(true)
+  }, [])
+
+  useEffect(() => {
+    if (!hydrated) return
+    try {
+      localStorage.setItem('app-theme', theme)
+    } catch {
+      // Theme persistence is optional when browser storage is unavailable.
+    }
     const root = document.documentElement
     if (theme === 'dark') {
       root.classList.add('dark')
     } else {
       root.classList.remove('dark')
     }
-  }, [theme])
+  }, [theme, hydrated])
 
   const toggleTheme = useCallback(() => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
   }, [])
 
-  return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  )
+  return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>
 }
 
 export function useTheme() {

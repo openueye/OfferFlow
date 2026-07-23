@@ -21,11 +21,3 @@ export async function getAuthUser() {
     return null
   }
 }
-
-export async function requireAuth() {
-  const user = await getAuthUser()
-  if (!user) {
-    throw new Error('Unauthorized')
-  }
-  return user
-}
