@@ -99,19 +99,28 @@ export default function Settings() {
     setTesting(true)
     setTestResult(null)
     try {
-      const baseUrl = llmForm.llmBaseUrl.replace(/\/+$/, '')
-      const res = await fetch(`${baseUrl}/models`, {
+      const res = await fetch('/api/ai/test-connection', {
+        method: 'POST',
         headers: {
-          Authorization: `Bearer ${llmForm.llmApiKey}`,
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          llmConfig: {
+            provider: llmForm.llmProvider,
+            apiKey: llmForm.llmApiKey,
+            baseUrl: llmForm.llmBaseUrl,
+            model: llmForm.llmModel,
+          },
+        }),
       })
+      const data = await res.json().catch(() => ({}))
       if (res.ok) {
-        const data = await res.json()
-        setTestResult({ ok: true, msg: `连接成功！可用模型 ${data.data?.length || '未知'} 个` })
-      } else if (res.status === 401) {
-        setTestResult({ ok: false, msg: 'API Key 无效（401）' })
+        setTestResult({
+          ok: true,
+          msg: `连接成功！实际分析请求可使用模型 ${data.model || llmForm.llmModel}`,
+        })
       } else {
-        setTestResult({ ok: false, msg: `连接失败（${res.status}）` })
+        setTestResult({ ok: false, msg: data.error || `连接失败（${res.status}）` })
       }
     } catch (err) {
       setTestResult({ ok: false, msg: `网络错误: ${err.message}` })

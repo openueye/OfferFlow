@@ -46,6 +46,17 @@ function isPublicAddress({ address, family }) {
   return isIP(address) !== 0 && !blockedAddresses.check(address, addressFamily)
 }
 
+export function createPinnedLookup(address) {
+  return (_hostname, options, callback) => {
+    const record = { address: address.address, family: address.family }
+    if (options?.all) {
+      callback(null, [record])
+      return
+    }
+    callback(null, record.address, record.family)
+  }
+}
+
 export async function resolveSafeUrl(rawUrl, { lookup = dnsLookup } = {}) {
   let url
   try {
@@ -107,7 +118,7 @@ function requestPinnedUrl(
         method,
         headers,
         servername: url.hostname,
-        lookup: (_hostname, _options, callback) => callback(null, address.address, address.family),
+        lookup: createPinnedLookup(address),
         signal,
       },
       (response) => {

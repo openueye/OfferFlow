@@ -8,8 +8,13 @@ import {
   mergeImportedFields,
   validateImportInput,
 } from '../src/lib/ai/jobImport.js'
-import { createPinnedFetch, fetchPublicPage, resolveSafeUrl } from '../src/lib/ai/safePageFetch.js'
-import { buildChatCompletionsUrl, callLLM } from '../src/lib/llm/client.js'
+import {
+  createPinnedFetch,
+  createPinnedLookup,
+  fetchPublicPage,
+  resolveSafeUrl,
+} from '../src/lib/ai/safePageFetch.js'
+import { buildChatCompletionsUrl, callLLM, getLLMFailure } from '../src/lib/llm/client.js'
 import { buildJobImportPrompt } from '../src/lib/llm/prompts.js'
 
 test('detectJobSource recognizes the supported recruiting channels', () => {
@@ -179,6 +184,17 @@ test('createPinnedFetch sends the LLM request through the prevalidated address',
   assert.equal(capturedRequest.options.body, '{"model":"test"}')
 })
 
+test('createPinnedLookup supports Node connection attempts that request all DNS records', () => {
+  const lookup = createPinnedLookup({ address: '93.184.216.34', family: 4 })
+  let result
+  lookup('llm.example.com', { all: true }, (error, addresses) => {
+    result = { error, addresses }
+  })
+
+  assert.equal(result.error, null)
+  assert.deepEqual(result.addresses, [{ address: '93.184.216.34', family: 4 }])
+})
+
 test('buildChatCompletionsUrl normalizes custom base URL slashes', () => {
   assert.equal(
     buildChatCompletionsUrl('https://llm.example.com/v1/'),
@@ -210,6 +226,48 @@ test('callLLM uses the supplied pinned transport for a dynamic endpoint', async 
 
   assert.equal(requestedUrl, 'https://llm.example.com/v1/chat/completions')
   assert.equal(result.content, '{"jobTitle":"Product manager"}')
+})
+
+test('getLLMFailure preserves actionable timeout, rate-limit, and network messages', async () => {
+  await assert.rejects(
+    () =>
+      callLLM({
+        systemPrompt: 'test',
+        userPrompt: 'test',
+        llmConfig: { apiKey: 'test-key', baseUrl: 'https://llm.example.com', model: 'test' },
+        fetchImpl: async () => new Response('', { status: 429, statusText: 'Too Many Requests' }),
+      }),
+    (error) => {
+      assert.deepEqual(getLLMFailure(error), {
+        error: 'AI 服务请求过于频繁（429），请稍后重试',
+        code: 'LLM_RATE_LIMIT',
+        status: 429,
+      })
+      return true
+    }
+  )
+
+  const controller = new AbortController()
+  controller.abort()
+  await assert.rejects(
+    () =>
+      callLLM({
+        systemPrompt: 'test',
+        userPrompt: 'test',
+        llmConfig: { apiKey: 'test-key', baseUrl: 'https://llm.example.com', model: 'test' },
+        fetchImpl: async () => {
+          throw new DOMException('The operation was aborted', 'AbortError')
+        },
+      }),
+    (error) => {
+      assert.deepEqual(getLLMFailure(error), {
+        error: 'AI 响应超时，请稍后重试或换用响应更快的模型',
+        code: 'LLM_TIMEOUT',
+        status: 504,
+      })
+      return true
+    }
+  )
 })
 
 test('buildJobImportPrompt treats fetched content as data and requests the exact field contract', () => {

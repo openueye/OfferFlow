@@ -7,7 +7,7 @@ import {
   validateImportInput,
 } from '@/lib/ai/jobImport'
 import { createPinnedFetch, fetchPublicPage, resolveSafeUrl } from '@/lib/ai/safePageFetch'
-import { buildChatCompletionsUrl, callLLMWithRetry } from '@/lib/llm/client'
+import { buildChatCompletionsUrl, callLLMWithRetry, getLLMFailure } from '@/lib/llm/client'
 import { buildJobImportPrompt } from '@/lib/llm/prompts'
 
 export const runtime = 'nodejs'
@@ -122,10 +122,8 @@ export async function POST(request) {
         : undefined,
     })
   } catch (error) {
-    if (error?.retryable) {
-      return errorResponse('AI 响应超时或暂时不可用，请稍后重试', 'LLM_TIMEOUT', 504)
-    }
-    return errorResponse('AI 分析失败，请检查模型配置后重试', 'LLM_ERROR', 502)
+    const failure = getLLMFailure(error)
+    return errorResponse(failure.error, failure.code, failure.status)
   }
 
   let modelOutput
