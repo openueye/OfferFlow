@@ -22,6 +22,14 @@ const WORK_MODE_OPTIONS = ['onsite', 'remote', 'hybrid']
 const CHANNEL_OPTIONS = ['', '内推', '官网投递', '猎头', '招聘平台', '校园招聘', '其他']
 const PRIORITY_OPTIONS = ['高', '中', '低']
 
+function getTodayDateString() {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 const emptyForm = {
   companyName: '',
   jobTitle: '',
@@ -100,7 +108,10 @@ export default function JobModal({ open, job, onClose, initialStatus }) {
       for (const key of Object.keys(emptyForm)) {
         if (base[key] === null || base[key] === undefined) base[key] = emptyForm[key]
       }
-      if (!job && initialStatus) base.status = initialStatus
+      if (!job) {
+        base.appliedDate = getTodayDateString()
+        if (initialStatus) base.status = initialStatus
+      }
       setForm(base)
     }
   }, [open, job, initialStatus])
